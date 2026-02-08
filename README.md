@@ -11,11 +11,11 @@ Backups wachsen schnell – und werden unübersichtlich.
 
 Dieses Projekt ermöglicht:
 
-✅ Rekursives Erfassen kompletter Backup-Festplatten
-✅ Speicherung der vollständigen Ordnerstruktur als Markdown
-✅ Semantische Suche in Backups (RAG + LLM)
-✅ Vergleich lokaler Ordner mit Backup-Ständen
-✅ Visuelle Darstellung von Abweichungen
+✅ Rekursives Erfassen kompletter Backup-Festplatten  
+✅ Speicherung der vollständigen Ordnerstruktur als Markdown  
+✅ Semantische Suche in Backups (RAG + LLM)  
+✅ Vergleich lokaler Ordner mit Backup-Ständen  
+✅ Visuelle Darstellung von Abweichungen  
 ✅ One-Click-Synchronisation fehlender Dateien
 
 ---
@@ -59,8 +59,8 @@ Beispiel-Fragen:
 
 In der Gradio App:
 
-🔍 Lokaler Ordner auswählen
-🔍 Entsprechender Backup-Ordner wird keyword-basiert gefunden
+🔍 Lokaler Ordner auswählen  
+🔍 Entsprechender Backup-Ordner wird keyword-basiert gefunden  
 📊 Vergleich zeigt:
 
 * nur im Backup vorhanden
