@@ -173,7 +173,7 @@ data/backup_index.md
 ## 🌐 Gradio App starten
 
 ```bash
-python src/app/gradio_app.py
+python semantic_backup_explorer/app/gradio_app.py
 ```
 
 Browser:

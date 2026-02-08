@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
 from llm_client import LLMClient
-from src.rag.embedder import Embedder
-from src.rag.retriever import Retriever
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.retriever import Retriever
 
 load_dotenv()
 

@@ -2,10 +2,10 @@ import argparse
 import os
 from pathlib import Path
 from tqdm import tqdm
-from src.indexer.scan_backup import scan_backup
-from src.chunking.folder_chunker import chunk_markdown
-from src.rag.embedder import Embedder
-from src.rag.retriever import Retriever
+from semantic_backup_explorer.indexer.scan_backup import scan_backup
+from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.retriever import Retriever
 
 def main():
     parser = argparse.ArgumentParser(description="Build semantic backup index.")

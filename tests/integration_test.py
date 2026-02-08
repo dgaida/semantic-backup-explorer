@@ -1,13 +1,13 @@
 import os
 import shutil
 from pathlib import Path
-from src.indexer.scan_backup import scan_backup
-from src.chunking.folder_chunker import chunk_markdown
-from src.rag.embedder import Embedder
-from src.rag.retriever import Retriever
-from src.rag.rag_pipeline import RAGPipeline
-from src.compare.folder_diff import compare_folders
-from src.sync.sync_missing import sync_files
+from semantic_backup_explorer.indexer.scan_backup import scan_backup
+from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.retriever import Retriever
+from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
+from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.sync.sync_missing import sync_files
 
 def integration_test():
     test_root = Path("tests/integration")
@@ -35,11 +35,11 @@ def integration_test():
     # 3. RAG Setup (Mocked LLM)
     print("Step 3: RAG Setup...")
     from unittest.mock import MagicMock
-    import src.rag.rag_pipeline
+    import semantic_backup_explorer.rag.rag_pipeline
 
-    original_llm = src.rag.rag_pipeline.LLMClient
-    src.rag.rag_pipeline.LLMClient = MagicMock()
-    mock_llm = src.rag.rag_pipeline.LLMClient.return_value
+    original_llm = semantic_backup_explorer.rag.rag_pipeline.LLMClient
+    semantic_backup_explorer.rag.rag_pipeline.LLMClient = MagicMock()
+    mock_llm = semantic_backup_explorer.rag.rag_pipeline.LLMClient.return_value
     mock_llm.chat_completion.return_value = "Gefunden im Ordner old_tax."
 
     chunks = chunk_markdown(index_file)
@@ -79,7 +79,7 @@ def integration_test():
     print("Integration test passed!")
 
     # Restore
-    src.rag.rag_pipeline.LLMClient = original_llm
+    semantic_backup_explorer.rag.rag_pipeline.LLMClient = original_llm
 
 if __name__ == "__main__":
     try:
