@@ -1,10 +1,10 @@
-\# 📦 Semantic Backup Explorer
+# 📦 Semantic Backup Explorer
 
 
 
-Ein Python-basiertes Tool zur \*\*Analyse, semantischen Durchsuchung und Synchronisation von Backups\*\* auf externen Festplatten – mit einer \*\*Gradio Web-App\*\*, \*\*RAG-Pipeline\*\* und Anbindung an ein LLM über
+Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchronisation von Backups** auf externen Festplatten – mit einer **Gradio Web-App**, **RAG-Pipeline** und Anbindung an ein LLM über
 
-👉 \[https://dgaida.github.io/llm\_client/](https://dgaida.github.io/llm\_client/)
+👉 [https://dgaida.github.io/llm_client/](https://dgaida.github.io/llm_client/)
 
 
 
@@ -12,7 +12,7 @@ Ein Python-basiertes Tool zur \*\*Analyse, semantischen Durchsuchung und Synchro
 
 
 
-\## 🚀 Motivation
+## 🚀 Motivation
 
 
 
@@ -42,11 +42,11 @@ Dieses Projekt ermöglicht:
 
 
 
-\## 🧠 Kernfunktionen
+## 🧠 Kernfunktionen
 
 
 
-\### 1. Backup-Struktur erfassen → Markdown
+### 1. Backup-Struktur erfassen → Markdown
 
 
 
@@ -54,11 +54,11 @@ Ein Python-Skript:
 
 
 
-\* durchläuft rekursiv externe Laufwerke
+* durchläuft rekursiv externe Laufwerke
 
-\* speichert \*\*jede Datei \& jeden Ordner mit vollem Pfad\*\*
+* speichert **jede Datei & jeden Ordner mit vollem Pfad**
 
-\* schreibt alles in eine strukturierte `backup\_index.md`
+* schreibt alles in eine strukturierte `backup_index.md`
 
 
 
@@ -68,13 +68,13 @@ Beispiel:
 
 ```md
 
-\## /media/backup/photos/2022
+## /media/backup/photos/2022
 
 
 
-\- /media/backup/photos/2022/img001.jpg
+- /media/backup/photos/2022/img001.jpg
 
-\- /media/backup/photos/2022/img002.jpg
+- /media/backup/photos/2022/img002.jpg
 
 ```
 
@@ -84,17 +84,17 @@ Beispiel:
 
 
 
-\### 2. Semantische Suche mit RAG
+### 2. Semantische Suche mit RAG
 
 
 
-\* Markdown wird in \*\*ordnerbasierte Chunks\*\* zerlegt
+* Markdown wird in **ordnerbasierte Chunks** zerlegt
 
-\* jeder Chunk = genau ein Ordner + enthaltene Dateien
+* jeder Chunk = genau ein Ordner + enthaltene Dateien
 
-\* Embeddings + Retrieval
+* Embeddings + Retrieval
 
-\* Antwortgenerierung über LLM (`llm\_client`)
+* Antwortgenerierung über LLM (`llm_client`)
 
 
 
@@ -112,7 +112,7 @@ Du kannst z.B. fragen:
 
 
 
-\### 3. Ordnervergleich (lokal vs Backup)
+### 3. Ordnervergleich (lokal vs Backup)
 
 
 
@@ -128,11 +128,11 @@ In der Gradio App:
 
 
 
-\* nur im Backup vorhanden
+* nur im Backup vorhanden
 
-\* nur lokal vorhanden
+* nur lokal vorhanden
 
-\* in beiden vorhanden
+* in beiden vorhanden
 
 
 
@@ -140,7 +140,7 @@ In der Gradio App:
 
 
 
-\### 4. Backup-Synchronisation
+### 4. Backup-Synchronisation
 
 
 
@@ -158,7 +158,7 @@ Per Button:
 
 
 
-\## 🖥 Gradio Web Interface
+## 🖥 Gradio Web Interface
 
 
 
@@ -184,7 +184,7 @@ Mehrere Tabs:
 
 
 
-\## 📁 Empfohlene Projektstruktur
+## 📁 Empfohlene Projektstruktur
 
 
 
@@ -204,7 +204,7 @@ semantic-backup-explorer/
 
 ├── data/
 
-│   ├── backup\_index.md
+│   ├── backup_index.md
 
 │   ├── chunks/
 
@@ -216,13 +216,13 @@ semantic-backup-explorer/
 
 │   ├── indexer/
 
-│   │   └── scan\_backup.py
+│   │   └── scan_backup.py
 
 │   │
 
 │   ├── chunking/
 
-│   │   └── folder\_chunker.py
+│   │   └── folder_chunker.py
 
 │   │
 
@@ -232,31 +232,31 @@ semantic-backup-explorer/
 
 │   │   ├── retriever.py
 
-│   │   └── rag\_pipeline.py
+│   │   └── rag_pipeline.py
 
 │   │
 
 │   ├── compare/
 
-│   │   └── folder\_diff.py
+│   │   └── folder_diff.py
 
 │   │
 
 │   ├── sync/
 
-│   │   └── sync\_missing.py
+│   │   └── sync_missing.py
 
 │   │
 
 │   └── app/
 
-│       └── gradio\_app.py
+│       └── gradio_app.py
 
 │
 
 └── scripts/
 
-&nbsp;   └── build\_index.py
+&nbsp;   └── build_index.py
 
 ```
 
@@ -266,7 +266,7 @@ semantic-backup-explorer/
 
 
 
-\## ⚙️ Installation
+## ⚙️ Installation
 
 
 
@@ -286,7 +286,7 @@ pip install -r requirements.txt
 
 
 
-\## 📦 Abhängigkeiten (Beispiel)
+## 📦 Abhängigkeiten (Beispiel)
 
 
 
@@ -314,13 +314,13 @@ tqdm
 
 
 
-\## 📄 Backup Index erzeugen
+## 📄 Backup Index erzeugen
 
 
 
 ```bash
 
-python scripts/build\_index.py --path /media/external\_backup
+python scripts/build_index.py --path /media/external_backup
 
 ```
 
@@ -332,7 +332,7 @@ Erzeugt:
 
 ```
 
-data/backup\_index.md
+data/backup_index.md
 
 ```
 
@@ -342,13 +342,13 @@ data/backup\_index.md
 
 
 
-\## 🌐 Gradio App starten
+## 🌐 Gradio App starten
 
 
 
 ```bash
 
-python src/app/gradio\_app.py
+python src/app/gradio_app.py
 
 ```
 
@@ -370,7 +370,7 @@ http://localhost:7860
 
 
 
-\## 🧩 RAG Architektur
+## 🧩 RAG Architektur
 
 
 
@@ -400,7 +400,7 @@ Markdown → Ordner-Chunks → Embeddings → Vector DB
 
 
 
-\## 🔐 LLM Integration
+## 🔐 LLM Integration
 
 
 
@@ -408,7 +408,7 @@ Dieses Projekt nutzt:
 
 
 
-\[https://dgaida.github.io/llm\_client/](https://dgaida.github.io/llm\_client/)
+[https://dgaida.github.io/llm_client/](https://dgaida.github.io/llm_client/)
 
 
 
@@ -420,17 +420,17 @@ Zur flexiblen Nutzung lokaler oder API-basierter Modelle.
 
 
 
-\## 📊 Visualisierung
+## 📊 Visualisierung
 
 
 
-\* Dateilisten farblich markiert
+* Dateilisten farblich markiert
 
-\* nur Backup → 🔵
+* nur Backup → 🔵
 
-\* nur lokal → 🔴
+* nur lokal → 🔴
 
-\* beides → 🟢
+* beides → 🟢
 
 
 
@@ -438,31 +438,11 @@ Optional mit:
 
 
 
-\* Tabellen
+* Tabellen
 
-\* Tree Views
+* Tree Views
 
-\* Diff-Listen
-
-
-
----
-
-
-
-\## 🛣 Roadmap (optional)
-
-
-
-\* \[ ] Hash-basierter Dateivergleich
-
-\* \[ ] Versionierte Backups
-
-\* \[ ] Zeitbasierte Snapshots
-
-\* \[ ] Auto-Sync Scheduler
-
-\* \[ ] Backup Health Report
+* Diff-Listen
 
 
 
@@ -470,17 +450,19 @@ Optional mit:
 
 
 
-\## 🧑‍💻 Zielgruppe
+## 🛣 Roadmap (optional)
 
 
 
-\* Entwickler:innen
+* [ ] Hash-basierter Dateivergleich
 
-\* Forschende
+* [ ] Versionierte Backups
 
-\* Power-User mit großen Backup-Archiven
+* [ ] Zeitbasierte Snapshots
 
-\* Digitale Archivierung
+* [ ] Auto-Sync Scheduler
+
+* [ ] Backup Health Report
 
 
 
@@ -488,7 +470,25 @@ Optional mit:
 
 
 
-\## 📜 Lizenz
+## 🧑‍💻 Zielgruppe
+
+
+
+* Entwickler:innen
+
+* Forschende
+
+* Power-User mit großen Backup-Archiven
+
+* Digitale Archivierung
+
+
+
+---
+
+
+
+## 📜 Lizenz
 
 
 
