@@ -9,11 +9,14 @@ description = "A semantic search and sync tool for backups."
 dependencies = [
     "gradio",
     "langchain",
-    "chromadb",
+    "chromadb>=0.5.0",
     "sentence-transformers",
     "llm-client @ git+https://github.com/dgaida/llm_client.git",
     "python-dotenv",
-    "tqdm"
+    "tqdm",
+    "pydantic-settings",
+    "pydantic>=2.0",
+    "typing-extensions>=4.10.0"
 ]
 
 [tool.setuptools]
