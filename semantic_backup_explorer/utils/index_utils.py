@@ -21,7 +21,7 @@ def find_backup_folder(folder_name, index_path):
     with open(index_path, 'r', encoding='utf-8') as f:
         for line in f:
             if line.startswith('## '):
-                header_path = line.replace('## ', '').strip()
+                header_path = line[3:].strip()
                 norm_header = header_path.replace('\\', '/')
 
                 if norm_header.endswith(f"/{clean_folder_name}") or norm_header == clean_folder_name or f"/{clean_folder_name}/" in norm_header:
@@ -42,7 +42,7 @@ def get_all_files_from_index(backup_root, index_path):
     with open(index_path, 'r', encoding='utf-8') as f:
         for line in f:
             if line.startswith('- '):
-                file_path = line.replace('- ', '').strip()
+                file_path = line[2:].strip()
                 # Skip directories (which end in / or \ in our index format)
                 if file_path.endswith('/') or file_path.endswith('\\'):
                     continue

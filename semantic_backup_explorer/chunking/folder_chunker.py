@@ -25,7 +25,7 @@ def chunk_markdown(filepath):
         # Extract folder path from header
         lines = rc.split('\n')
         header = lines[0]
-        folder_path = header.replace('## ', '').strip()
+        folder_path = header[3:].strip()
 
         chunks.append({
             "folder": str(folder_path),
