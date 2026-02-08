@@ -1,0 +1,7 @@
+gradio
+langchain
+chromadb
+sentence-transformers
+git+https://github.com/dgaida/llm_client.git
+python-dotenv
+tqdm
