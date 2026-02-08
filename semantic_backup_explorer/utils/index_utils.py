@@ -11,20 +11,23 @@ def find_backup_folder(folder_name, index_path):
     """
     Searches the index file for a folder header (##) that contains folder_name.
     Returns the first matching full path found.
+    Handles partial matches like 'Finanzen' matching 'Finanzen (Backup)'.
     """
     if not os.path.exists(index_path):
         return None
 
     # folder_name might also contain backslashes if passed from a Windows path
-    clean_folder_name = folder_name.replace('\\', '/').split('/')[-1]
+    clean_folder_name = folder_name.replace('\\', '/').rstrip('/').split('/')[-1].lower()
 
     with open(index_path, 'r', encoding='utf-8') as f:
         for line in f:
             if line.startswith('## '):
                 header_path = line[3:].strip()
-                norm_header = header_path.replace('\\', '/')
+                norm_header = header_path.replace('\\', '/').rstrip('/')
+                header_folder_name = norm_header.split('/')[-1].lower()
 
-                if norm_header.endswith(f"/{clean_folder_name}") or norm_header == clean_folder_name or f"/{clean_folder_name}/" in norm_header:
+                # Exact match or partial match (e.g. "Finanzen" in "Finanzen (Backup)")
+                if clean_folder_name == header_folder_name or clean_folder_name in header_folder_name:
                      return header_path
     return None
 
