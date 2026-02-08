@@ -20,5 +20,28 @@ dependencies = [
     "typing-extensions>=4.10.0"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "pre-commit"
+]
+
+[tool.ruff]
+line-length = 127
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B"]
+ignore = ["E501", "B008", "E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["semantic_backup_explorer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
 [tool.setuptools]
 packages = ["semantic_backup_explorer", "semantic_backup_explorer.app", "semantic_backup_explorer.chunking", "semantic_backup_explorer.compare", "semantic_backup_explorer.indexer", "semantic_backup_explorer.rag", "semantic_backup_explorer.sync"]

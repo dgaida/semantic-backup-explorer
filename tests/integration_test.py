@@ -1,13 +1,14 @@
-import os
 import shutil
 from pathlib import Path
-from semantic_backup_explorer.indexer.scan_backup import scan_backup
+
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
-from semantic_backup_explorer.rag.embedder import Embedder
-from semantic_backup_explorer.rag.retriever import Retriever
-from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.indexer.scan_backup import scan_backup
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
+from semantic_backup_explorer.rag.retriever import Retriever
 from semantic_backup_explorer.sync.sync_missing import sync_files
+
 
 def integration_test():
     test_root = Path("tests/integration")
@@ -35,6 +36,7 @@ def integration_test():
     # 3. RAG Setup (Mocked LLM)
     print("Step 3: RAG Setup...")
     from unittest.mock import MagicMock
+
     import semantic_backup_explorer.rag.rag_pipeline
 
     original_llm = semantic_backup_explorer.rag.rag_pipeline.LLMClient
@@ -47,13 +49,13 @@ def integration_test():
     retriever = Retriever(persist_directory=str(test_root / "embeddings"))
     retriever.clear()
 
-    embeddings = embedder.embed_documents([c['content'] for c in chunks])
+    embeddings = embedder.embed_documents([c["content"] for c in chunks])
     retriever.add_chunks(chunks, embeddings)
 
     # 4. Search
     print("Step 4: Searching...")
     pipeline = RAGPipeline()
-    pipeline.retriever = retriever # Override with our test retriever
+    pipeline.retriever = retriever  # Override with our test retriever
 
     answer, context = pipeline.answer_question("Wo ist die Steuer?")
     print(f"Answer: {answer}")
@@ -81,11 +83,13 @@ def integration_test():
     # Restore
     semantic_backup_explorer.rag.rag_pipeline.LLMClient = original_llm
 
+
 if __name__ == "__main__":
     try:
         integration_test()
     except Exception as e:
         print(f"Integration test failed: {e}")
         import traceback
+
         traceback.print_exc()
         exit(1)

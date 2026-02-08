@@ -1,11 +1,13 @@
 import os
 import unittest
+
 from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
+
 
 class TestIndexUtils(unittest.TestCase):
     def setUp(self):
         self.test_index = "tests/test_index_temp.md"
-        with open(self.test_index, 'w', encoding='utf-8') as f:
+        with open(self.test_index, "w", encoding="utf-8") as f:
             f.write("## J:\\data\\Multimedia\\MP3 Archiv\n")
             f.write("- J:\\data\\Multimedia\\MP3 Archiv\\Artist1/\n")
             f.write("- J:\\data\\Multimedia\\MP3 Archiv\\song1.mp3\n")
@@ -41,7 +43,7 @@ class TestIndexUtils(unittest.TestCase):
         files = get_all_files_from_index(backup_root, self.test_index)
 
         # Normalize paths for comparison (all will be normalized to forward slash in normalize_path call in test comparison)
-        norm_files = [f.replace('\\', '/') for f in files]
+        norm_files = [f.replace("\\", "/") for f in files]
 
         self.assertIn("song1.mp3", norm_files)
         self.assertIn("Artist1/song2.mp3", norm_files)
@@ -53,6 +55,7 @@ class TestIndexUtils(unittest.TestCase):
         files = get_all_files_from_index(backup_root, self.test_index)
 
         self.assertIn("Artist - Song.mp3", files)
+
 
 if __name__ == "__main__":
     unittest.main()

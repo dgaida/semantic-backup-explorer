@@ -1,9 +1,10 @@
-import unittest
-import os
 import shutil
+import unittest
 from pathlib import Path
+
 from semantic_backup_explorer.compare.folder_diff import compare_folders
 from semantic_backup_explorer.sync.sync_missing import sync_files
+
 
 class TestSyncCompare(unittest.TestCase):
     def setUp(self):
@@ -40,6 +41,7 @@ class TestSyncCompare(unittest.TestCase):
         self.assertEqual(len(synced), 1)
         self.assertEqual(synced[0], "file2.txt")
         self.assertTrue((self.backup_dir / "file2.txt").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

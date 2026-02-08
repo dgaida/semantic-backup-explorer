@@ -212,6 +212,47 @@ Optional mit Tabellen oder Tree Views.
 
 ---
 
+## 🛠 Entwicklung & CI/CD
+
+### Entwicklungsumgebung einrichten
+
+```bash
+pip install -e ".[dev]"
+```
+
+### Tests ausführen
+
+```bash
+pytest
+```
+
+### Code-Qualität & Linting
+
+Wir verwenden **Ruff** für Linting und Formatierung.
+
+```bash
+# Check
+ruff check .
+
+# Formatieren
+ruff format .
+```
+
+### Pre-commit Hooks
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
+### CI/CD
+
+Ein GitHub Action Workflow läuft bei jedem Push auf `main` und überprüft:
+* Code-Qualität (Ruff)
+* Tests (Pytest) über mehrere Python-Versionen (3.10 - 3.13)
+
+---
+
 ## 🛣 Roadmap
 
 * [ ] Hash-basierter Dateivergleich

@@ -1,10 +1,11 @@
-import os
 from dotenv import load_dotenv
 from llm_client import LLMClient
+
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.retriever import Retriever
 
 load_dotenv()
+
 
 class RAGPipeline:
     def __init__(self):
@@ -20,7 +21,7 @@ class RAGPipeline:
         # 2. Retrieve relevant chunks
         results = self.retriever.query(query_embedding, n_results=3)
 
-        context = "\n\n".join(results['documents'][0])
+        context = "\n\n".join(results["documents"][0])
 
         # 3. Generate answer
         prompt = f"""
@@ -37,7 +38,7 @@ Antwort:"""
 
         messages = [
             {"role": "system", "content": "Du bist ein Backup-Explorer Assistent."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ]
 
         response = self.client.chat_completion(messages)

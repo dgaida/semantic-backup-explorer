@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+
 def chunk_markdown(filepath):
     """
     Parses a markdown index file and splits it into chunks based on folder headers (##).
@@ -11,12 +12,12 @@ def chunk_markdown(filepath):
     if not filepath.exists():
         return []
 
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     root_path = None
     for line in lines:
-        if line.startswith('Root: '):
+        if line.startswith("Root: "):
             root_path = Path(line[6:].strip())
             break
 
@@ -25,16 +26,16 @@ def chunk_markdown(filepath):
 
     content = "".join(lines)
     # Split by ## headers
-    raw_chunks = re.split(r'\n(?=## )', content)
+    raw_chunks = re.split(r"\n(?=## )", content)
 
     chunks = []
     for rc in raw_chunks:
         rc = rc.strip()
-        if not rc.startswith('## '):
+        if not rc.startswith("## "):
             continue
 
         # Extract folder path from header
-        lines = rc.split('\n')
+        lines = rc.split("\n")
         header = lines[0]
         folder_path_str = header[3:].strip()
         folder_path = Path(folder_path_str)
@@ -47,24 +48,24 @@ def chunk_markdown(filepath):
             depth = 0
 
         if depth <= 4 or not chunks:
-            chunks.append({
-                "folder": str(folder_path),
-                "content": rc,
-                "metadata": {
-                    "source": str(filepath),
+            chunks.append(
+                {
                     "folder": str(folder_path),
-                    "depth": depth
+                    "content": rc,
+                    "metadata": {"source": str(filepath), "folder": str(folder_path), "depth": depth},
                 }
-            })
+            )
         else:
             # Append to last chunk
             chunks[-1]["content"] += "\n\n" + rc
 
     return chunks
 
+
 if __name__ == "__main__":
-    import sys
     import json
+    import sys
+
     if len(sys.argv) > 1:
         chunks = chunk_markdown(sys.argv[1])
         print(json.dumps(chunks, indent=2))

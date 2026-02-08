@@ -1,16 +1,19 @@
 from semantic_backup_explorer.utils.compatibility import check_python_version
+
 check_python_version()
 
-import gradio as gr
 import os
 from pathlib import Path
-from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
-from semantic_backup_explorer.rag.embedder import Embedder
-from semantic_backup_explorer.rag.retriever import Retriever
-from semantic_backup_explorer.compare.folder_diff import compare_folders
-from semantic_backup_explorer.sync.sync_missing import sync_files
+
+import gradio as gr
+
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.compare.folder_diff import compare_folders
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
+from semantic_backup_explorer.rag.retriever import Retriever
+from semantic_backup_explorer.sync.sync_missing import sync_files
 from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
 
 # Initialize RAG Pipeline
@@ -22,11 +25,13 @@ except Exception as e:
     print(f"Warning: Could not initialize RAG Pipeline: {e}")
     pipeline = None
 
+
 def semantic_search(query):
     if not pipeline:
         return "RAG Pipeline not initialized. Check GROQ_API_KEY.", ""
     answer, context = pipeline.answer_question(query)
     return answer, context
+
 
 def folder_compare(local_path):
     if not local_path or not os.path.exists(local_path):
@@ -37,7 +42,7 @@ def folder_compare(local_path):
     # 1. Extract folder name from local path
     # Using Path.name is more robust for cross-platform paths
     folder_name = Path(local_path).name
-    if not folder_name: # For root paths like "C:\"
+    if not folder_name:  # For root paths like "C:\"
         folder_name = local_path
 
     # 2. Try to find the backup folder path by keyword search in the index
@@ -47,7 +52,8 @@ def folder_compare(local_path):
     if not backup_folder and pipeline:
         _, context = pipeline.answer_question(f"Wo ist der Ordner {folder_name}?")
         import re
-        match = re.search(r'## (.*)', context)
+
+        match = re.search(r"## (.*)", context)
         if match:
             backup_folder = match.group(1).strip()
 
@@ -66,11 +72,12 @@ def folder_compare(local_path):
 
     return "Kein passendes Backup gefunden.", "", "", "", ""
 
+
 def run_sync(only_local_text, local_root, target_root, progress=gr.Progress()):
     if not target_root or not os.path.exists(target_root):
         return "Zielordner existiert nicht oder ist nicht angeschlossen."
 
-    files_to_sync = [f.strip() for f in only_local_text.split('\n') if f.strip()]
+    files_to_sync = [f.strip() for f in only_local_text.split("\n") if f.strip()]
     if not files_to_sync:
         return "Keine Dateien zum Synchronisieren."
 
@@ -89,12 +96,14 @@ def run_sync(only_local_text, local_root, target_root, progress=gr.Progress()):
         msg += f"\nFehler bei {len(errors)} Dateien."
     return msg
 
+
 def get_index_viewer():
     index_path = "data/backup_index.md"
     if os.path.exists(index_path):
-        with open(index_path, 'r', encoding='utf-8') as f:
+        with open(index_path, "r", encoding="utf-8") as f:
             return f.read()
     return "Kein Index gefunden. Bitte oben den Pfad angeben und auf 'Index erstellen' klicken."
+
 
 def create_index(backup_path, progress=gr.Progress()):
     if not backup_path or not os.path.exists(backup_path):
@@ -110,6 +119,7 @@ def create_index(backup_path, progress=gr.Progress()):
     except Exception as e:
         return f"Fehler beim Erstellen des Index: {e}", get_index_viewer()
 
+
 def check_embeddings_staleness():
     index_path = "data/backup_index.md"
     embeddings_path = "data/embeddings/chroma.sqlite3"
@@ -121,9 +131,12 @@ def check_embeddings_staleness():
         return gr.update(value="⚠️ Embeddings fehlen. Bitte erstellen.", visible=True), gr.update(visible=True)
 
     if os.path.getmtime(embeddings_path) < os.path.getmtime(index_path):
-        return gr.update(value="⚠️ Die Embeddings sind veraltet und müssen erneuert werden.", visible=True), gr.update(visible=True)
+        return gr.update(value="⚠️ Die Embeddings sind veraltet und müssen erneuert werden.", visible=True), gr.update(
+            visible=True
+        )
 
     return gr.update(visible=False), gr.update(visible=False)
+
 
 def run_rebuild_embeddings(progress=gr.Progress()):
     index_path = "data/backup_index.md"
@@ -141,15 +154,17 @@ def run_rebuild_embeddings(progress=gr.Progress()):
         retriever = Retriever()
         retriever.clear()
 
-        texts = [c['content'] for c in chunks]
+        texts = [c["content"] for c in chunks]
         batch_size = 32
         total_batches = (len(texts) + batch_size - 1) // batch_size
 
         for i in range(0, len(texts), batch_size):
             batch_num = i // batch_size
-            progress((batch_num / total_batches) * 0.8 + 0.1, desc=f"Erstelle Embeddings (Batch {batch_num+1}/{total_batches})...")
-            batch_texts = texts[i:i+batch_size]
-            batch_chunks = chunks[i:i+batch_size]
+            progress(
+                (batch_num / total_batches) * 0.8 + 0.1, desc=f"Erstelle Embeddings (Batch {batch_num + 1}/{total_batches})..."
+            )
+            batch_texts = texts[i : i + batch_size]
+            batch_chunks = chunks[i : i + batch_size]
             batch_embeddings = embedder.embed_documents(batch_texts)
             retriever.add_chunks(batch_chunks, batch_embeddings)
 
@@ -159,12 +174,13 @@ def run_rebuild_embeddings(progress=gr.Progress()):
         global pipeline
         try:
             pipeline = RAGPipeline()
-        except:
+        except Exception:
             pass
 
         return "Embeddings erfolgreich erstellt."
     except Exception as e:
         return f"Fehler beim Erstellen der Embeddings: {e}"
+
 
 with gr.Blocks(title="Semantic Backup Explorer") as demo:
     gr.Markdown("# 📦 Semantic Backup Explorer")
@@ -197,8 +213,11 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
             only_backup_out = gr.Textbox(label="🔵 Nur im Backup", lines=10)
             in_both_out = gr.Textbox(label="🟢 In beiden vorhanden", lines=10)
 
-        compare_button.click(folder_compare, inputs=local_path_input,
-                             outputs=[backup_found_info, only_local_out, only_backup_out, in_both_out, target_root_state])
+        compare_button.click(
+            folder_compare,
+            inputs=local_path_input,
+            outputs=[backup_found_info, only_local_out, only_backup_out, in_both_out, target_root_state],
+        )
 
         sync_button = gr.Button("🔄 Synchronisieren (Fehlende Dateien kopieren)")
         sync_status = gr.Textbox(label="Sync Status")
