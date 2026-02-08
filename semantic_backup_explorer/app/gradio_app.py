@@ -63,7 +63,7 @@ def folder_compare(local_path):
 
     return "Kein passendes Backup gefunden.", "", "", "", ""
 
-def run_sync(only_local_text, local_root, target_root):
+def run_sync(only_local_text, local_root, target_root, progress=gr.Progress()):
     if not target_root or not os.path.exists(target_root):
         return "Zielordner existiert nicht oder ist nicht angeschlossen."
 
@@ -71,7 +71,15 @@ def run_sync(only_local_text, local_root, target_root):
     if not files_to_sync:
         return "Keine Dateien zum Synchronisieren."
 
-    synced, errors = sync_files(files_to_sync, local_root, target_root)
+    def sync_callback(current, total, filename):
+        # Update progress bar every file
+        # Show filename every 100th file or at the start/end
+        desc = f"Kopiere Datei {current} von {total}..."
+        if current == 1 or current == total or current % 100 == 0:
+            desc += f" ({filename})"
+        progress(current / total, desc=desc)
+
+    synced, errors = sync_files(files_to_sync, local_root, target_root, callback=sync_callback)
 
     msg = f"{len(synced)} Dateien erfolgreich kopiert."
     if errors:

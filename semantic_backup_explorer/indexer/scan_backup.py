@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from tqdm import tqdm
 
 def scan_backup(root_path, output_file="data/backup_index.md"):
     """
@@ -14,7 +15,7 @@ def scan_backup(root_path, output_file="data/backup_index.md"):
         f.write(f"# Backup Index\n\n")
         f.write(f"Root: {root_path}\n\n")
 
-        for root, dirs, files in os.walk(root_path):
+        for root, dirs, files in tqdm(os.walk(root_path), desc="Scanning directories"):
             current_path = Path(root)
             f.write(f"## {current_path}\n\n")
 
