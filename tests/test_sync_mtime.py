@@ -1,10 +1,10 @@
 import os
 import time
-from pathlib import Path
-import pytest
+
 from semantic_backup_explorer.compare.folder_diff import compare_folders
-from semantic_backup_explorer.utils.index_utils import get_all_files_from_index
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
+from semantic_backup_explorer.utils.index_utils import get_all_files_from_index
+
 
 def test_compare_folders_with_mtime(tmp_path):
     # Setup local folder
@@ -39,6 +39,7 @@ def test_compare_folders_with_mtime(tmp_path):
 
     assert "file1.txt" in diff["only_local"]
     assert "file1.txt" not in diff["in_both"]
+
 
 def test_compare_folders_equal_mtime(tmp_path):
     # Setup local folder
