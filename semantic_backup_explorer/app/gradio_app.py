@@ -8,6 +8,7 @@ from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.compare.folder_diff import compare_folders
 from semantic_backup_explorer.sync.sync_missing import sync_files
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
 
 # Initialize RAG Pipeline
@@ -91,7 +92,21 @@ def get_index_viewer():
     if os.path.exists(index_path):
         with open(index_path, 'r', encoding='utf-8') as f:
             return f.read()
-    return "Kein Index gefunden. Bitte zuerst `scripts/build_index.py` ausführen."
+    return "Kein Index gefunden. Bitte oben den Pfad angeben und auf 'Index erstellen' klicken."
+
+def create_index(backup_path, progress=gr.Progress()):
+    if not backup_path or not os.path.exists(backup_path):
+        return "Ungültiger Pfad.", get_index_viewer()
+
+    def scan_callback(count, current_folder):
+        if count == 1 or count % 100 == 0:
+            progress(None, desc=f"Gelesene Ordner: {count}... Aktuell: {current_folder}")
+
+    try:
+        scan_backup(backup_path, callback=scan_callback)
+        return "Index erfolgreich erstellt.", get_index_viewer()
+    except Exception as e:
+        return f"Fehler beim Erstellen des Index: {e}", get_index_viewer()
 
 with gr.Blocks(title="Semantic Backup Explorer") as demo:
     gr.Markdown("# 📦 Semantic Backup Explorer")
@@ -124,8 +139,15 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
         sync_button.click(run_sync, inputs=[only_local_out, local_path_input, target_root_state], outputs=sync_status)
 
     with gr.Tab("📄 Index Viewer"):
+        with gr.Row():
+            backup_path_input = gr.Textbox(label="Backup Pfad zum Scannen", placeholder="/path/to/backup")
+            create_index_button = gr.Button("Index erstellen")
+
+        index_status = gr.Textbox(label="Status")
         refresh_button = gr.Button("Aktualisieren")
         index_content = gr.Textbox(label="backup_index.md", lines=20, value=get_index_viewer())
+
+        create_index_button.click(create_index, inputs=backup_path_input, outputs=[index_status, index_content])
         refresh_button.click(get_index_viewer, inputs=[], outputs=index_content)
 
 if __name__ == "__main__":

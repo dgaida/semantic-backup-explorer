@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from tqdm import tqdm
 
-def scan_backup(root_path, output_file="data/backup_index.md"):
+def scan_backup(root_path, output_file="data/backup_index.md", callback=None):
     """
     Recursively scans the root_path and writes every file and folder
     with its full path into a structured markdown file.
@@ -15,7 +15,11 @@ def scan_backup(root_path, output_file="data/backup_index.md"):
         f.write(f"# Backup Index\n\n")
         f.write(f"Root: {root_path}\n\n")
 
+        count = 0
         for root, dirs, files in tqdm(os.walk(root_path), desc="Scanning directories"):
+            count += 1
+            if callback:
+                callback(count, root)
             current_path = Path(root)
             f.write(f"## {current_path}\n\n")
 
