@@ -5,6 +5,8 @@ import gradio as gr
 import os
 from pathlib import Path
 from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.retriever import Retriever
 from semantic_backup_explorer.compare.folder_diff import compare_folders
 from semantic_backup_explorer.sync.sync_missing import sync_files
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
@@ -108,16 +110,80 @@ def create_index(backup_path, progress=gr.Progress()):
     except Exception as e:
         return f"Fehler beim Erstellen des Index: {e}", get_index_viewer()
 
+def check_embeddings_staleness():
+    index_path = "data/backup_index.md"
+    embeddings_path = "data/embeddings/chroma.sqlite3"
+
+    if not os.path.exists(index_path):
+        return gr.update(visible=False), gr.update(visible=False)
+
+    if not os.path.exists(embeddings_path):
+        return gr.update(value="⚠️ Embeddings fehlen. Bitte erstellen.", visible=True), gr.update(visible=True)
+
+    if os.path.getmtime(embeddings_path) < os.path.getmtime(index_path):
+        return gr.update(value="⚠️ Die Embeddings sind veraltet und müssen erneuert werden.", visible=True), gr.update(visible=True)
+
+    return gr.update(visible=False), gr.update(visible=False)
+
+def run_rebuild_embeddings(progress=gr.Progress()):
+    index_path = "data/backup_index.md"
+    if not os.path.exists(index_path):
+        return "Kein Index gefunden."
+
+    try:
+        progress(0, desc="Lade Index und erstelle Chunks...")
+        chunks = chunk_markdown(index_path)
+        if not chunks:
+            return "Keine Chunks im Index gefunden."
+
+        progress(0.1, desc="Initialisiere Embedder...")
+        embedder = Embedder()
+        retriever = Retriever()
+        retriever.clear()
+
+        texts = [c['content'] for c in chunks]
+        batch_size = 32
+        total_batches = (len(texts) + batch_size - 1) // batch_size
+
+        for i in range(0, len(texts), batch_size):
+            batch_num = i // batch_size
+            progress((batch_num / total_batches) * 0.8 + 0.1, desc=f"Erstelle Embeddings (Batch {batch_num+1}/{total_batches})...")
+            batch_texts = texts[i:i+batch_size]
+            batch_chunks = chunks[i:i+batch_size]
+            batch_embeddings = embedder.embed_documents(batch_texts)
+            retriever.add_chunks(batch_chunks, batch_embeddings)
+
+        progress(1.0, desc="Fertig!")
+
+        # Re-initialize the pipeline so it uses the new embeddings
+        global pipeline
+        try:
+            pipeline = RAGPipeline()
+        except:
+            pass
+
+        return "Embeddings erfolgreich erstellt."
+    except Exception as e:
+        return f"Fehler beim Erstellen der Embeddings: {e}"
+
 with gr.Blocks(title="Semantic Backup Explorer") as demo:
     gr.Markdown("# 📦 Semantic Backup Explorer")
 
-    with gr.Tab("📚 Semantic Search"):
+    with gr.Tab("📚 Semantic Search") as semantic_search_tab:
+        embeddings_warning = gr.Markdown(visible=False)
+        rebuild_embeddings_button = gr.Button("Embeddings erstellen", visible=False)
+
         with gr.Row():
             query_input = gr.Textbox(label="Frage an dein Backup", placeholder="Wo liegen alte Steuerunterlagen?")
             search_button = gr.Button("Suchen")
         answer_output = gr.Textbox(label="Antwort")
         context_output = gr.Textbox(label="Gefundene Ordner (Kontext)", lines=10)
         search_button.click(semantic_search, inputs=query_input, outputs=[answer_output, context_output])
+
+        semantic_search_tab.select(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
+        rebuild_embeddings_button.click(run_rebuild_embeddings, outputs=[]).then(
+            check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
+        )
 
     with gr.Tab("📂 Folder Compare"):
         local_path_input = gr.Textbox(label="Lokaler Ordner Pfad")
@@ -150,5 +216,7 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
         create_index_button.click(create_index, inputs=backup_path_input, outputs=[index_status, index_content])
         refresh_button.click(get_index_viewer, inputs=[], outputs=index_content)
 
+    demo.load(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
+
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(server_name="0.0.0.0", server_port=7860, inbrowser=True)
