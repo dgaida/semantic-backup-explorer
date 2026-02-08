@@ -1,18 +1,23 @@
 import shutil
 from pathlib import Path
 
-def sync_files(files_to_sync, source_root, target_root):
+def sync_files(files_to_sync, source_root, target_root, callback=None):
     """
     Copies files from source_root to target_root.
     files_to_sync is a list of relative paths.
+    An optional callback(index, total, filename) can be provided for progress tracking.
     """
     source_root = Path(source_root)
     target_root = Path(target_root)
 
     synced = []
     errors = []
+    total = len(files_to_sync)
 
-    for rel_path in files_to_sync:
+    for i, rel_path in enumerate(files_to_sync):
+        if callback:
+            callback(i + 1, total, rel_path)
+
         src = source_root / rel_path
         dst = target_root / rel_path
 
