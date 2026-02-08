@@ -19,7 +19,7 @@ def parse_config(config_path):
     with open(config_path, 'r', encoding='utf-8') as f:
         for line in f:
             # Look for lines starting with '- ' followed by a path
-            if line.strip().startswith('- '):
+            if line.strip().startswith('- ') or line.strip().startswith('* '):
                 folder = line.strip()[2:].strip()
                 folders.append(folder)
     return folders
