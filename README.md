@@ -134,6 +134,9 @@ semantic-backup-explorer/
 
 ## ⚙️ Installation
 
+**Requirements:** Python 3.10, 3.11, 3.12 or 3.13.
+*(Note: Python 3.14+ is currently not supported due to dependency incompatibilities.)*
+
 ```bash
 git clone https://github.com/yourname/semantic-backup-explorer.git
 cd semantic-backup-explorer

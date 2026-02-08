@@ -1,3 +1,6 @@
+from semantic_backup_explorer.utils.compatibility import check_python_version
+check_python_version()
+
 import gradio as gr
 import os
 from pathlib import Path

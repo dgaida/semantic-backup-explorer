@@ -1,6 +1,14 @@
 import argparse
 import os
+import sys
 from pathlib import Path
+
+# Add project root to sys.path to allow imports when running as a script
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from semantic_backup_explorer.utils.compatibility import check_python_version
+check_python_version()
+
 from tqdm import tqdm
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown

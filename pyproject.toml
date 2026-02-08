@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "semantic_backup_explorer"
 version = "0.1.0"
 description = "A semantic search and sync tool for backups."
+requires-python = ">=3.10, <3.14"
 dependencies = [
     "gradio",
     "langchain",
