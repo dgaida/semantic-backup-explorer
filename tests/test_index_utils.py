@@ -15,6 +15,9 @@ class TestIndexUtils(unittest.TestCase):
             f.write("\n")
             f.write("## J:\\data\\Other\n")
             f.write("- J:\\data\\Other\\file.txt\n")
+            f.write("\n")
+            f.write("## J:\\data\\Music\n")
+            f.write("- J:\\data\\Music\\Artist - Song.mp3\n")
 
     def tearDown(self):
         if os.path.exists(self.test_index):
@@ -44,6 +47,12 @@ class TestIndexUtils(unittest.TestCase):
         self.assertIn("Artist1/song2.mp3", norm_files)
         self.assertEqual(len(norm_files), 2)
         self.assertNotIn("Other/file.txt", norm_files)
+
+    def test_get_all_files_with_hyphens(self):
+        backup_root = "J:\\data\\Music"
+        files = get_all_files_from_index(backup_root, self.test_index)
+
+        self.assertIn("Artist - Song.mp3", files)
 
 if __name__ == "__main__":
     unittest.main()
