@@ -5,7 +5,7 @@ def normalize_path(path):
     """Normalizes path to use forward slashes for internal comparison."""
     if not path:
         return ""
-    return path.replace("\\", "/").rstrip("/")
+    return str(path).replace("\\", "/").rstrip("/")
 
 
 def find_backup_folder(folder_name, index_path):
@@ -36,9 +36,9 @@ def find_backup_folder(folder_name, index_path):
 def get_all_files_from_index(backup_root, index_path):
     """
     Extracts all file paths from the index that are sub-paths of backup_root.
-    Returns a list of relative paths.
+    Returns a dictionary mapping relative paths to mtimes.
     """
-    files = []
+    files = {}
     if not os.path.exists(index_path):
         return files
 
@@ -47,7 +47,19 @@ def get_all_files_from_index(backup_root, index_path):
     with open(index_path, "r", encoding="utf-8") as f:
         for line in f:
             if line.startswith("- "):
-                file_path = line[2:].strip()
+                line_content = line[2:].strip()
+
+                # Check for mtime
+                if " | mtime:" in line_content:
+                    file_path, mtime_str = line_content.rsplit(" | mtime:", 1)
+                    try:
+                        mtime = float(mtime_str)
+                    except ValueError:
+                        mtime = 0.0
+                else:
+                    file_path = line_content
+                    mtime = 0.0
+
                 # Skip directories (which end in / or \ in our index format)
                 if file_path.endswith("/") or file_path.endswith("\\"):
                     continue
@@ -62,5 +74,5 @@ def get_all_files_from_index(backup_root, index_path):
                         if rel_path:
                             # Use current OS separator for the returned relative paths
                             # so they match what os.walk produces in compare_folders
-                            files.append(rel_path.replace("/", os.sep))
+                            files[rel_path.replace("/", os.sep)] = mtime
     return files
