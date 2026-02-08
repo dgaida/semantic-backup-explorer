@@ -1,6 +1,7 @@
 import shutil
 from pathlib import Path
 
+
 def sync_files(files_to_sync, source_root, target_root, callback=None):
     """
     Copies files from source_root to target_root.

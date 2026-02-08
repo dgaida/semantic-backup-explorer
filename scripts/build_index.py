@@ -1,19 +1,21 @@
 import argparse
 import os
 import sys
-from pathlib import Path
 
 # Add project root to sys.path to allow imports when running as a script
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from semantic_backup_explorer.utils.compatibility import check_python_version
+
 check_python_version()
 
 from tqdm import tqdm
-from semantic_backup_explorer.indexer.scan_backup import scan_backup
+
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.retriever import Retriever
+
 
 def main():
     parser = argparse.ArgumentParser(description="Build semantic backup index.")
@@ -37,17 +39,18 @@ def main():
     retriever.clear()
 
     print("Generating embeddings and storing in ChromaDB...")
-    texts = [c['content'] for c in chunks]
+    texts = [c["content"] for c in chunks]
 
     # Process in batches if many
     batch_size = 32
     for i in tqdm(range(0, len(texts), batch_size)):
-        batch_texts = texts[i:i+batch_size]
-        batch_chunks = chunks[i:i+batch_size]
+        batch_texts = texts[i : i + batch_size]
+        batch_chunks = chunks[i : i + batch_size]
         batch_embeddings = embedder.embed_documents(batch_texts)
         retriever.add_chunks(batch_chunks, batch_embeddings)
 
     print("Indexing complete!")
+
 
 if __name__ == "__main__":
     main()

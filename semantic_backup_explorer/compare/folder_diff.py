@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+
 def get_folder_content(folder_path):
     """Returns a set of relative file paths in the folder."""
     folder_path = Path(folder_path)
@@ -14,6 +15,7 @@ def get_folder_content(folder_path):
             files.add(str(full_path.relative_to(folder_path)))
     return files
 
+
 def compare_folders(local_path, backup_files_list):
     """
     Compares local folder content with a list of files from backup.
@@ -26,8 +28,4 @@ def compare_folders(local_path, backup_files_list):
     only_backup = backup_files - local_files
     in_both = local_files & backup_files
 
-    return {
-        "only_local": sorted(list(only_local)),
-        "only_backup": sorted(list(only_backup)),
-        "in_both": sorted(list(in_both))
-    }
+    return {"only_local": sorted(list(only_local)), "only_backup": sorted(list(only_backup)), "in_both": sorted(list(in_both))}

@@ -6,23 +6,27 @@ from pathlib import Path
 # Add project root to sys.path to allow imports when running as a script
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from semantic_backup_explorer.indexer.scan_backup import scan_backup
-from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
+from tqdm import tqdm
+
 from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.sync.sync_missing import sync_files
+from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
+
 
 def parse_config(config_path):
     """Parses the markdown config file for source folders."""
     folders = []
     if not os.path.exists(config_path):
         return folders
-    with open(config_path, 'r', encoding='utf-8') as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         for line in f:
             # Look for lines starting with '- ' followed by a path
-            if line.strip().startswith('- ') or line.strip().startswith('* '):
+            if line.strip().startswith("- ") or line.strip().startswith("* "):
                 folder = line.strip()[2:].strip()
                 folders.append(folder)
     return folders
+
 
 def main():
     parser = argparse.ArgumentParser(description="Auto Sync local folders to backup.")
@@ -59,8 +63,8 @@ def main():
 
         # Determine folder name for matching
         folder_name = Path(local_path).name
-        if not folder_name: # Handle root drives or trailing slashes
-            folder_name = str(Path(local_path)).replace(':', '').replace('\\', '_').replace('/', '_')
+        if not folder_name:  # Handle root drives or trailing slashes
+            folder_name = str(Path(local_path)).replace(":", "").replace("\\", "_").replace("/", "_")
 
         backup_folder = find_backup_folder(folder_name, index_path)
 
@@ -77,11 +81,15 @@ def main():
             print(f"Will sync to new folder: {target_root}")
             # For a new folder, all local files are considered missing in backup
             from semantic_backup_explorer.compare.folder_diff import get_folder_content
+
             files_to_sync = sorted(list(get_folder_content(local_path)))
 
         if files_to_sync:
             print(f"Syncing {len(files_to_sync)} files...")
-            synced, errors = sync_files(files_to_sync, local_path, target_root)
+            with tqdm(total=len(files_to_sync), desc=f"Syncing {folder_name}", unit="file") as pbar:
+                synced, errors = sync_files(
+                    files_to_sync, local_path, target_root, callback=lambda current, total, filename: pbar.update(1)
+                )
             status = "OK"
             if errors:
                 status = f"{len(errors)} errors"
@@ -91,9 +99,9 @@ def main():
             results.append((local_path, 0, "Up to date"))
 
     # 4. Print protocol
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("BACKUP PROTOCOL")
-    print("="*60)
+    print("=" * 60)
     print(f"{'Local Folder':<35} | {'Synced':<8} | {'Status'}")
     print("-" * 60)
     for folder, count, status in results:
@@ -102,7 +110,8 @@ def main():
         if len(display_folder) > 35:
             display_folder = "..." + display_folder[-32:]
         print(f"{display_folder:<35} | {count:<8} | {status}")
-    print("="*60)
+    print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

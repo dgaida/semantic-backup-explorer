@@ -1,9 +1,6 @@
-import pytest
-from pathlib import Path
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
-import shutil
-import os
+
 
 def test_chunk_markdown_depth(tmp_path):
     test_root = tmp_path / "test_backup"
@@ -31,6 +28,7 @@ def test_chunk_markdown_depth(tmp_path):
     assert str(test_root / "d1" / "d2" / "d3" / "d4") in d4_chunk["content"]
     assert str(test_root / "d1" / "d2" / "d3" / "d4" / "d5") in d4_chunk["content"]
     assert str(test_root / "d1" / "d2" / "d3" / "d4" / "d5" / "d6") in d4_chunk["content"]
+
 
 def test_chunk_markdown_multiple_branches(tmp_path):
     test_root = tmp_path / "test_backup"
