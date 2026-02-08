@@ -8,6 +8,7 @@ from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.compare.folder_diff import compare_folders
 from semantic_backup_explorer.sync.sync_missing import sync_files
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
 
 # Initialize RAG Pipeline
 # Note: This might fail if GROQ_API_KEY is not set,
@@ -26,37 +27,39 @@ def semantic_search(query):
 
 def folder_compare(local_path):
     if not local_path or not os.path.exists(local_path):
-        return "Ungültiger Pfad.", "", ""
+        return "Ungültiger Pfad.", "", "", "", ""
 
-    # Try to find corresponding folder in backup using RAG
-    # We use the folder name as a query
-    folder_name = os.path.basename(local_path)
-    if pipeline:
+    index_path = "data/backup_index.md"
+
+    # 1. Extract folder name from local path
+    # Using Path.name is more robust for cross-platform paths
+    folder_name = Path(local_path).name
+    if not folder_name: # For root paths like "C:\"
+        folder_name = local_path
+
+    # 2. Try to find the backup folder path by keyword search in the index
+    backup_folder = find_backup_folder(folder_name, index_path)
+
+    # 3. Fallback to RAG if keyword search fails
+    if not backup_folder and pipeline:
         _, context = pipeline.answer_question(f"Wo ist der Ordner {folder_name}?")
-        # Extract the first folder path from context (starts with ## )
         import re
         match = re.search(r'## (.*)', context)
         if match:
             backup_folder = match.group(1).strip()
-            # Get files from the retrieved chunk
-            backup_files = []
-            for line in context.split('\n'):
-                if line.startswith('- '):
-                    file_path = line.replace('- ', '').strip()
-                    # Make it relative to the backup folder
-                    try:
-                        rel_path = os.path.relpath(file_path, backup_folder)
-                        backup_files.append(rel_path)
-                    except:
-                        pass
 
-            diff = compare_folders(local_path, backup_files)
+    if backup_folder:
+        # 4. Get ALL files from the index that are within this backup folder
+        backup_files = get_all_files_from_index(backup_folder, index_path)
 
-            only_local = "\n".join(diff["only_local"])
-            only_backup = "\n".join(diff["only_backup"])
-            in_both = "\n".join(diff["in_both"])
+        # 5. Compare
+        diff = compare_folders(local_path, backup_files)
 
-            return f"Gefundenes Backup: {backup_folder}", only_local, only_backup, in_both, backup_folder
+        only_local = "\n".join(diff["only_local"])
+        only_backup = "\n".join(diff["only_backup"])
+        in_both = "\n".join(diff["in_both"])
+
+        return f"Gefundenes Backup: {backup_folder}", only_local, only_backup, in_both, backup_folder
 
     return "Kein passendes Backup gefunden.", "", "", "", ""
 
