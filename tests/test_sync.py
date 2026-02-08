@@ -2,8 +2,8 @@ import unittest
 import os
 import shutil
 from pathlib import Path
-from src.compare.folder_diff import compare_folders
-from src.sync.sync_missing import sync_files
+from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.sync.sync_missing import sync_files
 
 class TestSyncCompare(unittest.TestCase):
     def setUp(self):

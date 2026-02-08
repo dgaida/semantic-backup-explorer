@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "semantic_backup_explorer"
+version = "0.1.0"
+description = "A semantic search and sync tool for backups."
+dependencies = [
+    "gradio",
+    "langchain",
+    "chromadb",
+    "sentence-transformers",
+    "llm-client @ git+https://github.com/dgaida/llm_client.git",
+    "python-dotenv",
+    "tqdm"
+]
+
+[tool.setuptools]
+packages = ["semantic_backup_explorer", "semantic_backup_explorer.app", "semantic_backup_explorer.chunking", "semantic_backup_explorer.compare", "semantic_backup_explorer.indexer", "semantic_backup_explorer.rag", "semantic_backup_explorer.sync"]

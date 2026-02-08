@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from src.rag.embedder import Embedder
-from src.rag.retriever import Retriever
+from semantic_backup_explorer.rag.embedder import Embedder
+from semantic_backup_explorer.rag.retriever import Retriever
 # Import pipeline AFTER patching or patch the correct path
-from src.rag.rag_pipeline import RAGPipeline
+from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 
 class TestRAG(unittest.TestCase):
     def test_embedder(self):
@@ -11,7 +11,7 @@ class TestRAG(unittest.TestCase):
         embedding = embedder.embed_query("test query")
         self.assertEqual(len(embedding), 384) # all-MiniLM-L6-v2 dimension
 
-    @patch('src.rag.rag_pipeline.LLMClient')
+    @patch('semantic_backup_explorer.rag.rag_pipeline.LLMClient')
     def test_pipeline(self, MockLLMClient):
         # Setup mock
         mock_client = MockLLMClient.return_value

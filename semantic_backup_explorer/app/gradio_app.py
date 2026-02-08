@@ -1,10 +1,10 @@
 import gradio as gr
 import os
 from pathlib import Path
-from src.rag.rag_pipeline import RAGPipeline
-from src.compare.folder_diff import compare_folders
-from src.sync.sync_missing import sync_files
-from src.chunking.folder_chunker import chunk_markdown
+from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
+from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.sync.sync_missing import sync_files
+from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
 
 # Initialize RAG Pipeline
 # Note: This might fail if GROQ_API_KEY is not set,
