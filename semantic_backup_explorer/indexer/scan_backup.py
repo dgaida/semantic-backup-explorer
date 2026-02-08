@@ -7,7 +7,10 @@ def scan_backup(root_path, output_file="data/backup_index.md"):
     with its full path into a structured markdown file.
     """
     root_path = Path(root_path).resolve()
-    with open(output_file, 'w', encoding='utf-8') as f:
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(f"# Backup Index\n\n")
         f.write(f"Root: {root_path}\n\n")
 
