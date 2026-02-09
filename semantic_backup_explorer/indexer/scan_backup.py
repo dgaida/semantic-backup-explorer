@@ -28,7 +28,12 @@ def scan_backup(root_path, output_file="data/backup_index.md", callback=None):
             for d in sorted(dirs):
                 f.write(f"- {current_path / d}/\n")
             for name in sorted(files):
-                f.write(f"- {current_path / name}\n")
+                file_path = current_path / name
+                try:
+                    mtime = os.path.getmtime(file_path)
+                    f.write(f"- {file_path} | mtime:{mtime}\n")
+                except Exception:
+                    f.write(f"- {file_path}\n")
             f.write("\n")
 
 
