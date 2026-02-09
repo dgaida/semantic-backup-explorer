@@ -42,6 +42,29 @@ class TestSyncCompare(unittest.TestCase):
         self.assertEqual(synced[0], "file2.txt")
         self.assertTrue((self.backup_dir / "file2.txt").exists())
 
+    def test_sync_with_callback_and_error(self):
+        files_to_sync = ["file2.txt", "non_existent.txt"]
+        callback_results = []
+
+        def callback(current, total, rel_path, error=None):
+            callback_results.append((current, total, rel_path, error))
+
+        synced, errors = sync_files(files_to_sync, self.local_dir, self.backup_dir, callback=callback)
+
+        # file2.txt should succeed, non_existent.txt should fail
+        self.assertEqual(len(synced), 1)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0][0], "non_existent.txt")
+
+        self.assertEqual(len(callback_results), 2)
+        # First call: success
+        self.assertEqual(callback_results[0][2], "file2.txt")
+        self.assertIsNone(callback_results[0][3])
+        # Second call: error
+        self.assertEqual(callback_results[1][2], "non_existent.txt")
+        self.assertIsNotNone(callback_results[1][3])
+        self.assertTrue("does not exist" in callback_results[1][3].lower() or "no such file" in callback_results[1][3].lower())
+
 
 if __name__ == "__main__":
     unittest.main()
