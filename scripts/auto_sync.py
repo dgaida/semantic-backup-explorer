@@ -85,11 +85,17 @@ def main():
             files_to_sync = sorted(list(get_folder_content(local_path)))
 
         if files_to_sync:
-            print(f"Syncing {len(files_to_sync)} files...")
+            print(f"Syncing {len(files_to_sync)} files to {target_root}...")
+
+            def sync_callback(current, total, filename, error=None):
+                if error:
+                    tqdm.write(f"  [ERROR] {filename}: {error}")
+                else:
+                    tqdm.write(f"  [OK] {filename}")
+                pbar.update(1)
+
             with tqdm(total=len(files_to_sync), desc=f"Syncing {folder_name}", unit="file") as pbar:
-                synced, errors = sync_files(
-                    files_to_sync, local_path, target_root, callback=lambda current, total, filename: pbar.update(1)
-                )
+                synced, errors = sync_files(files_to_sync, local_path, target_root, callback=sync_callback)
             status = "OK"
             if errors:
                 status = f"{len(errors)} errors"

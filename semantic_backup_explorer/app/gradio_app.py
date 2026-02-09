@@ -81,12 +81,15 @@ def run_sync(only_local_text, local_root, target_root, progress=gr.Progress()):
     if not files_to_sync:
         return "Keine Dateien zum Synchronisieren."
 
-    def sync_callback(current, total, filename):
+    def sync_callback(current, total, filename, error=None):
         # Update progress bar every file
-        # Show filename every 100th file or at the start/end
-        desc = f"Kopiere Datei {current} von {total}..."
-        if current == 1 or current == total or current % 100 == 0:
-            desc += f" ({filename})"
+        if error:
+            desc = f"⚠️ Fehler bei {filename}: {error}"
+        else:
+            desc = f"Kopiere Datei {current} von {total}..."
+            # Show filename every 100th file or at the start/end
+            if current == 1 or current == total or current % 100 == 0:
+                desc += f" ({filename})"
         progress(current / total, desc=desc)
 
     synced, errors = sync_files(files_to_sync, local_root, target_root, callback=sync_callback)
