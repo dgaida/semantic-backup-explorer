@@ -1,108 +1,139 @@
+"""Script for automatically synchronizing local folders to a backup location."""
+
 import argparse
+import logging
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to sys.path to allow imports when running as a script
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tqdm import tqdm
 
-from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.compare.folder_diff import get_folder_content
+from semantic_backup_explorer.core.backup_operations import BackupOperations
+from semantic_backup_explorer.exceptions import BackupExplorerError
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.sync.sync_missing import sync_files
-from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
+from semantic_backup_explorer.utils.config import BackupConfig
+from semantic_backup_explorer.utils.logging_utils import setup_logging
 
 
-def parse_config(config_path):
-    """Parses the markdown config file for source folders."""
+def parse_config(config_path: Path) -> list[str]:
+    """
+    Parses the markdown config file for source folders.
+
+    Args:
+        config_path: Path to the backup configuration file.
+
+    Returns:
+        A list of folder paths to synchronize.
+    """
     folders = []
-    if not os.path.exists(config_path):
+    if not config_path.exists():
         return folders
     with open(config_path, "r", encoding="utf-8") as f:
         for line in f:
-            # Look for lines starting with '- ' followed by a path
-            if line.strip().startswith("- ") or line.strip().startswith("* "):
-                folder = line.strip()[2:].strip()
+            # Look for lines starting with '- ' or '* ' followed by a path
+            stripped = line.strip()
+            if stripped.startswith("- ") or stripped.startswith("* "):
+                folder = stripped[2:].strip()
                 folders.append(folder)
     return folders
 
 
-def main():
+def main() -> None:
+    """Main entry point for the auto_sync script."""
     parser = argparse.ArgumentParser(description="Auto Sync local folders to backup.")
     parser.add_argument("--config", default="backup_config.md", help="Path to backup config markdown file.")
-    parser.add_argument("--backup_path", required=True, help="Path to backup drive/folder root.")
+    parser.add_argument("--backup_path", help="Path to backup drive/folder root (overrides config).")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging.")
     args = parser.parse_args()
 
-    index_path = "data/backup_index.md"
-    os.makedirs("data", exist_ok=True)
+    # Setup logging
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    setup_logging(level=log_level)
+    logger = logging.getLogger(__name__)
+
+    # Load Config
+    config = BackupConfig()
+    if args.backup_path:
+        config.backup_drive = Path(args.backup_path)
+
+    try:
+        config.validate_backup_drive()
+    except Exception as e:
+        logger.error(f"Backup drive validation failed: {e}")
+        sys.exit(1)
 
     # 1. Scan backup
-    print(f"Scanning backup drive at {args.backup_path}...")
+    logger.info(f"Scanning backup drive at {config.backup_drive}...")
     try:
-        scan_backup(args.backup_path, index_path)
+        scan_backup(config.backup_drive, config.index_path)
     except Exception as e:
-        print(f"Error scanning backup drive: {e}")
+        logger.error(f"Error scanning backup drive: {e}")
         sys.exit(1)
 
     # 2. Load config
-    source_folders = parse_config(args.config)
+    config_file = Path(args.config)
+    source_folders = parse_config(config_file)
     if not source_folders:
-        print(f"No source folders found in {args.config}. Please add folders under '## Source Folders' as a list.")
+        logger.warning(
+            f"No source folders found in {args.config}. Please add folders under '## Source Folders' as a list."
+        )
         return
 
+    operations = BackupOperations(index_path=config.index_path)
     results = []
 
     # 3. Process folders
-    for local_path in source_folders:
-        print(f"\nProcessing {local_path}...")
-        if not os.path.exists(local_path):
-            print(f"Warning: Local path {local_path} does not exist. Skipping.")
-            results.append((local_path, 0, "Not Found Locally"))
+    for local_path_str in source_folders:
+        local_path = Path(local_path_str)
+        logger.info(f"Processing {local_path}...")
+
+        if not local_path.exists():
+            logger.warning(f"Local path {local_path} does not exist. Skipping.")
+            results.append((str(local_path), 0, "Not Found Locally"))
             continue
 
-        # Determine folder name for matching
-        folder_name = Path(local_path).name
-        if not folder_name:  # Handle root drives or trailing slashes
-            folder_name = str(Path(local_path)).replace(":", "").replace("\\", "_").replace("/", "_")
+        result = operations.find_and_compare(local_path)
 
-        backup_folder = find_backup_folder(folder_name, index_path)
-
-        if backup_folder:
-            print(f"Found matching backup folder in index: {backup_folder}")
-            backup_files = get_all_files_from_index(backup_folder, index_path)
-            diff = compare_folders(local_path, backup_files)
-            files_to_sync = diff["only_local"]
-            target_root = backup_folder
+        if result.error:
+            logger.warning(f"Comparison error for {local_path}: {result.error}")
+            # If not found in index, we might want to default to creating a new one
+            if "No matching backup folder found" in result.error:
+                target_root = config.backup_drive / local_path.name
+                logger.info(f"Defaulting to new folder: {target_root}")
+                files_to_sync = sorted(list(get_folder_content(local_path)))
+            else:
+                results.append((str(local_path), 0, f"Error: {result.error}"))
+                continue
         else:
-            print(f"No matching backup folder found for '{folder_name}'.")
-            # Default to backup_path / folder_name if not found in index
-            target_root = os.path.join(args.backup_path, folder_name)
-            print(f"Will sync to new folder: {target_root}")
-            # For a new folder, all local files are considered missing in backup
-            from semantic_backup_explorer.compare.folder_diff import get_folder_content
+            target_root = result.backup_path  # type: ignore
+            files_to_sync = result.only_local
 
-            files_to_sync = sorted(list(get_folder_content(local_path)))
+        if files_to_sync and target_root:
+            logger.info(f"Syncing {len(files_to_sync)} files to {target_root}...")
 
-        if files_to_sync:
-            print(f"Syncing {len(files_to_sync)} files to {target_root}...")
-
-            def sync_callback(current, total, filename, error=None):
+            def sync_callback(current: int, total: int, filename: str, error: Optional[str] = None) -> None:
                 if error:
                     tqdm.write(f"  [ERROR] {filename}: {error}")
                 else:
                     tqdm.write(f"  [OK] {filename}")
                 pbar.update(1)
 
-            with tqdm(total=len(files_to_sync), desc=f"Syncing {folder_name}", unit="file") as pbar:
+            with tqdm(total=len(files_to_sync), desc=f"Syncing {local_path.name}", unit="file") as pbar:
                 synced, errors = sync_files(files_to_sync, local_path, target_root, callback=sync_callback)
+
             status = "OK"
             if errors:
                 status = f"{len(errors)} errors"
-            results.append((local_path, len(synced), status))
+            results.append((str(local_path), len(synced), status))
         else:
-            print("Everything up to date.")
-            results.append((local_path, 0, "Up to date"))
+            logger.info("Everything up to date.")
+            results.append((str(local_path), 0, "Up to date"))
 
     # 4. Print protocol
     print("\n" + "=" * 60)
@@ -111,7 +142,6 @@ def main():
     print(f"{'Local Folder':<35} | {'Synced':<8} | {'Status'}")
     print("-" * 60)
     for folder, count, status in results:
-        # Truncate folder name if too long
         display_folder = folder
         if len(display_folder) > 35:
             display_folder = "..." + display_folder[-32:]
@@ -120,4 +150,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BackupExplorerError as e:
+        print(f"Backup Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logging.exception("An unexpected error occurred")
+        print(f"Unexpected Error: {e}")
+        sys.exit(1)

@@ -1,98 +1,101 @@
-from semantic_backup_explorer.utils.compatibility import check_python_version
+"""Gradio Web UI for Semantic Backup Explorer."""
 
-check_python_version()
-
+import logging
 import os
 from pathlib import Path
+from typing import Any, NamedTuple, Optional
 
 import gradio as gr
 
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
-from semantic_backup_explorer.compare.folder_diff import compare_folders
+from semantic_backup_explorer.core.backup_operations import BackupOperations
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.rag.retriever import Retriever
 from semantic_backup_explorer.sync.sync_missing import sync_files
-from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
+from semantic_backup_explorer.utils.compatibility import check_python_version
+from semantic_backup_explorer.utils.config import BackupConfig
+
+check_python_version()
+
+logger = logging.getLogger(__name__)
+
+# Initialize Config
+config = BackupConfig()
 
 # Initialize RAG Pipeline
-# Note: This might fail if GROQ_API_KEY is not set,
-# but we'll handle it or assume it's set in the environment.
+pipeline: Optional[RAGPipeline]
 try:
     pipeline = RAGPipeline()
 except Exception as e:
-    print(f"Warning: Could not initialize RAG Pipeline: {e}")
+    logger.error(f"Could not initialize RAG Pipeline: {e}")
     pipeline = None
 
+# Initialize Backup Operations
+operations = BackupOperations(index_path=config.index_path, rag_pipeline=pipeline)
 
-def semantic_search(query):
+
+def semantic_search(query: str) -> tuple[str, str]:
+    """Handles semantic search queries."""
     if not pipeline:
         return "RAG Pipeline not initialized. Check GROQ_API_KEY.", ""
     answer, context = pipeline.answer_question(query)
     return answer, context
 
 
-def folder_compare(local_path):
-    if not local_path or not os.path.exists(local_path):
-        return "Ungültiger Pfad.", "", "", "", ""
+class ComparisonUIResult(NamedTuple):
+    """Result of folder comparison for UI."""
 
-    index_path = "data/backup_index.md"
-
-    # 1. Extract folder name from local path
-    # Using Path.name is more robust for cross-platform paths
-    folder_name = Path(local_path).name
-    if not folder_name:  # For root paths like "C:\"
-        folder_name = local_path
-
-    # 2. Try to find the backup folder path by keyword search in the index
-    backup_folder = find_backup_folder(folder_name, index_path)
-
-    # 3. Fallback to RAG if keyword search fails
-    if not backup_folder and pipeline:
-        _, context = pipeline.answer_question(f"Wo ist der Ordner {folder_name}?")
-        import re
-
-        match = re.search(r"## (.*)", context)
-        if match:
-            backup_folder = match.group(1).strip()
-
-    if backup_folder:
-        # 4. Get ALL files from the index that are within this backup folder
-        backup_files = get_all_files_from_index(backup_folder, index_path)
-
-        # 5. Compare
-        diff = compare_folders(local_path, backup_files)
-
-        only_local = "\n".join(diff["only_local"])
-        only_backup = "\n".join(diff["only_backup"])
-        in_both = "\n".join(diff["in_both"])
-
-        return f"Gefundenes Backup: {backup_folder}", only_local, only_backup, in_both, backup_folder
-
-    return "Kein passendes Backup gefunden.", "", "", "", ""
+    status: str
+    only_local: str
+    only_backup: str
+    in_both: str
+    target_root: str
 
 
-def run_sync(only_local_text, local_root, target_root, progress=gr.Progress()):
-    if not target_root or not os.path.exists(target_root):
+def folder_compare(local_path_str: str) -> ComparisonUIResult:
+    """Compares local folder with backup for UI."""
+    if not local_path_str:
+        return ComparisonUIResult("Bitte Pfad eingeben.", "", "", "", "")
+
+    local_path = Path(local_path_str)
+    if not local_path.exists():
+        return ComparisonUIResult("Lokaler Pfad existiert nicht.", "", "", "", "")
+
+    result = operations.find_and_compare(local_path)
+
+    if result.error:
+        return ComparisonUIResult(f"⚠️ {result.error}", "\n".join(result.only_local), "", "", "")
+
+    return ComparisonUIResult(
+        status=f"✅ Gefundenes Backup: {result.backup_path}",
+        only_local="\n".join(result.only_local),
+        only_backup="\n".join(result.only_backup),
+        in_both="\n".join(result.in_both),
+        target_root=str(result.backup_path),
+    )
+
+
+def run_sync(only_local_text: str, local_root_str: str, target_root_str: str, progress: gr.Progress = gr.Progress()) -> str:
+    """Runs the file synchronization process."""
+    if not target_root_str or not os.path.exists(target_root_str):
         return "Zielordner existiert nicht oder ist nicht angeschlossen."
 
     files_to_sync = [f.strip() for f in only_local_text.split("\n") if f.strip()]
     if not files_to_sync:
         return "Keine Dateien zum Synchronisieren."
 
-    def sync_callback(current, total, filename, error=None):
-        # Update progress bar every file
+    def sync_callback(current: int, total: int, filename: str, error: Optional[str] = None) -> None:
         if error:
             desc = f"⚠️ Fehler bei {filename}: {error}"
         else:
             desc = f"Kopiere Datei {current} von {total}..."
-            # Show filename every 100th file or at the start/end
             if current == 1 or current == total or current % 100 == 0:
                 desc += f" ({filename})"
         progress(current / total, desc=desc)
 
-    synced, errors = sync_files(files_to_sync, local_root, target_root, callback=sync_callback)
+    synced, errors = sync_files(files_to_sync, local_root_str, target_root_str, callback=sync_callback)
 
     msg = f"{len(synced)} Dateien erfolgreich kopiert."
     if errors:
@@ -100,40 +103,42 @@ def run_sync(only_local_text, local_root, target_root, progress=gr.Progress()):
     return msg
 
 
-def get_index_viewer():
-    index_path = "data/backup_index.md"
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
+def get_index_viewer() -> str:
+    """Reads the backup index file for viewing."""
+    if config.index_path.exists():
+        with open(config.index_path, "r", encoding="utf-8") as f:
             return f.read()
     return "Kein Index gefunden. Bitte oben den Pfad angeben und auf 'Index erstellen' klicken."
 
 
-def create_index(backup_path, progress=gr.Progress()):
+def create_index(backup_path: str, progress: gr.Progress = gr.Progress()) -> tuple[str, str]:
+    """Creates a new backup index."""
     if not backup_path or not os.path.exists(backup_path):
         return "Ungültiger Pfad.", get_index_viewer()
 
-    def scan_callback(count, current_folder):
+    def scan_callback(count: int, current_folder: str) -> None:
         if count == 1 or count % 100 == 0:
             progress(None, desc=f"Gelesene Ordner: {count}... Aktuell: {current_folder}")
 
     try:
-        scan_backup(backup_path, callback=scan_callback)
+        scan_backup(backup_path, output_file=config.index_path, callback=scan_callback)
         return "Index erfolgreich erstellt.", get_index_viewer()
     except Exception as e:
+        logger.exception("Error during indexing")
         return f"Fehler beim Erstellen des Index: {e}", get_index_viewer()
 
 
-def check_embeddings_staleness():
-    index_path = "data/backup_index.md"
-    embeddings_path = "data/embeddings/chroma.sqlite3"
+def check_embeddings_staleness() -> tuple[dict[str, Any], dict[str, Any]]:
+    """Checks if embeddings need rebuilding."""
+    embeddings_file = config.embeddings_path / "chroma.sqlite3"
 
-    if not os.path.exists(index_path):
+    if not config.index_path.exists():
         return gr.update(visible=False), gr.update(visible=False)
 
-    if not os.path.exists(embeddings_path):
+    if not embeddings_file.exists():
         return gr.update(value="⚠️ Embeddings fehlen. Bitte erstellen.", visible=True), gr.update(visible=True)
 
-    if os.path.getmtime(embeddings_path) < os.path.getmtime(index_path):
+    if embeddings_file.stat().st_mtime < config.index_path.stat().st_mtime:
         return gr.update(value="⚠️ Die Embeddings sind veraltet und müssen erneuert werden.", visible=True), gr.update(
             visible=True
         )
@@ -141,20 +146,20 @@ def check_embeddings_staleness():
     return gr.update(visible=False), gr.update(visible=False)
 
 
-def run_rebuild_embeddings(progress=gr.Progress()):
-    index_path = "data/backup_index.md"
-    if not os.path.exists(index_path):
+def run_rebuild_embeddings(progress: gr.Progress = gr.Progress()) -> str:
+    """Rebuilds the vector database from the current index."""
+    if not config.index_path.exists():
         return "Kein Index gefunden."
 
     try:
         progress(0, desc="Lade Index und erstelle Chunks...")
-        chunks = chunk_markdown(index_path)
+        chunks = chunk_markdown(config.index_path)
         if not chunks:
             return "Keine Chunks im Index gefunden."
 
         progress(0.1, desc="Initialisiere Embedder...")
         embedder = Embedder()
-        retriever = Retriever()
+        retriever = Retriever(persist_directory=config.embeddings_path)
         retriever.clear()
 
         texts = [c["content"] for c in chunks]
@@ -173,18 +178,21 @@ def run_rebuild_embeddings(progress=gr.Progress()):
 
         progress(1.0, desc="Fertig!")
 
-        # Re-initialize the pipeline so it uses the new embeddings
-        global pipeline
+        # Re-initialize the pipeline and operations
+        global pipeline, operations
         try:
             pipeline = RAGPipeline()
+            operations = BackupOperations(index_path=config.index_path, rag_pipeline=pipeline)
         except Exception:
             pass
 
         return "Embeddings erfolgreich erstellt."
     except Exception as e:
+        logger.exception("Error rebuilding embeddings")
         return f"Fehler beim Erstellen der Embeddings: {e}"
 
 
+# UI Definition
 with gr.Blocks(title="Semantic Backup Explorer") as demo:
     gr.Markdown("# 📦 Semantic Backup Explorer")
 
@@ -240,5 +248,11 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
 
     demo.load(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
 
-if __name__ == "__main__":
+
+def main() -> None:
+    """Launches the Gradio application."""
     demo.launch(server_name="0.0.0.0", server_port=7860, inbrowser=True)
+
+
+if __name__ == "__main__":
+    main()

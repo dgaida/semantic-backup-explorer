@@ -1,17 +1,16 @@
+"""Compatibility checks and utilities for different Python versions and environments."""
+
 import sys
 
 
-def check_python_version():
+def check_python_version() -> None:
     """
     Checks if the current Python version is supported.
-    Currently, Python 3.14+ is not supported due to incompatibilities
-    in the 'chromadb' dependency with Pydantic v1.
+
+    Raises:
+        RuntimeError: If the Python version is unsupported.
     """
+    if sys.version_info < (3, 10):
+        raise RuntimeError("Python 3.10 or higher is required.")
     if sys.version_info >= (3, 14):
-        print("\033[91m" + "=" * 80 + "\033[0m")
-        print("\033[91mERROR: Semantic Backup Explorer is currently not compatible with Python 3.14 or greater.\033[0m")
-        print("\nThis is due to an incompatibility in the 'chromadb' dependency, which relies on ")
-        print("Pydantic v1. Pydantic v1 core functionality is broken on Python 3.14+.")
-        print("\nPlease use a supported Python version: 3.10, 3.11, 3.12, or 3.13.")
-        print("\033[91m" + "=" * 80 + "\033[0m")
-        sys.exit(1)
+        raise RuntimeError("Python 3.14+ is not supported due to Pydantic v1 incompatibilities in dependencies.")

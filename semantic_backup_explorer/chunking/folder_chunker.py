@@ -1,12 +1,22 @@
+"""Module for chunking the markdown index into folder-based sections."""
+
 import re
 from pathlib import Path
+from typing import Any
 
 
-def chunk_markdown(filepath):
+def chunk_markdown(filepath: str | Path) -> list[dict[str, Any]]:
     """
     Parses a markdown index file and splits it into chunks based on folder headers (##).
+
     Only folders until a depth of 4 (relative to the Root path) start a new chunk.
     Subfolders deeper than 4 are added to the chunk of their nearest depth-4 ancestor.
+
+    Args:
+        filepath: Path to the markdown index file.
+
+    Returns:
+        A list of chunk dictionaries, each containing 'folder', 'content', and 'metadata'.
     """
     filepath = Path(filepath)
     if not filepath.exists():
@@ -28,15 +38,15 @@ def chunk_markdown(filepath):
     # Split by ## headers
     raw_chunks = re.split(r"\n(?=## )", content)
 
-    chunks = []
+    chunks: list[dict[str, Any]] = []
     for rc in raw_chunks:
         rc = rc.strip()
         if not rc.startswith("## "):
             continue
 
         # Extract folder path from header
-        lines = rc.split("\n")
-        header = lines[0]
+        rc_lines = rc.split("\n")
+        header = rc_lines[0]
         folder_path_str = header[3:].strip()
         folder_path = Path(folder_path_str)
 
@@ -57,7 +67,8 @@ def chunk_markdown(filepath):
             )
         else:
             # Append to last chunk
-            chunks[-1]["content"] += "\n\n" + rc
+            current_content = str(chunks[-1]["content"])
+            chunks[-1]["content"] = current_content + "\n\n" + rc
 
     return chunks
 

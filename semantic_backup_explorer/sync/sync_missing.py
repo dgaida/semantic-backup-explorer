@@ -1,29 +1,53 @@
-import inspect
+"""Module for synchronizing files between local and backup directories."""
+
 import shutil
 from pathlib import Path
+from typing import Optional, Protocol
 
 
-def sync_files(files_to_sync, source_root, target_root, callback=None):
+class SyncProgressCallback(Protocol):
+    """Protocol for sync progress callbacks."""
+
+    def __call__(self, current: int, total: int, filename: str, error: Optional[str] = None) -> None:
+        """
+        Called for each file processed.
+
+        Args:
+            current: Current file number (1-indexed).
+            total: Total number of files.
+            filename: Relative path of current file.
+            error: Error message if sync failed, None if successful.
+        """
+        ...
+
+
+def sync_files(
+    files_to_sync: list[str], source_root: str | Path, target_root: str | Path, callback: Optional[SyncProgressCallback] = None
+) -> tuple[list[str], list[tuple[str, str]]]:
     """
     Copies files from source_root to target_root.
-    files_to_sync is a list of relative paths.
-    An optional callback(index, total, filename) can be provided for progress tracking.
+
+    Args:
+        files_to_sync: List of relative file paths to copy.
+        source_root: Source directory.
+        target_root: Target directory.
+        callback: Optional progress callback.
+
+    Returns:
+        Tuple of (synced_files, errors) where errors is a list of (filename, error_msg).
+
+    Raises:
+        FileNotFoundError: If source_root does not exist.
     """
     source_root = Path(source_root)
     target_root = Path(target_root)
 
+    if not source_root.exists():
+        raise FileNotFoundError(f"Source root does not exist: {source_root}")
+
     synced = []
     errors = []
     total = len(files_to_sync)
-
-    # Check callback signature for backwards compatibility
-    callback_args = 0
-    if callback:
-        try:
-            callback_args = len(inspect.signature(callback).parameters)
-        except Exception:
-            # Fallback for callbacks that don't support signature inspection
-            callback_args = 3
 
     for i, rel_path in enumerate(files_to_sync):
         src = source_root / rel_path
@@ -40,9 +64,6 @@ def sync_files(files_to_sync, source_root, target_root, callback=None):
             errors.append((rel_path, error_msg))
 
         if callback:
-            if callback_args >= 4:
-                callback(i + 1, total, rel_path, error_msg)
-            else:
-                callback(i + 1, total, rel_path)
+            callback(i + 1, total, rel_path, error_msg)
 
     return synced, errors

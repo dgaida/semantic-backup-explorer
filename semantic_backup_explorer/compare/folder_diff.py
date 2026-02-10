@@ -1,14 +1,33 @@
+"""Module for comparing local folders with backup contents."""
+
 import os
 from pathlib import Path
+from typing import TypedDict, Union
 
 
-def get_folder_content(folder_path):
-    """Returns a dictionary of relative file paths and their mtimes."""
+class FolderDiffResult(TypedDict):
+    """Result of folder comparison."""
+
+    only_local: list[str]
+    only_backup: list[str]
+    in_both: list[str]
+
+
+def get_folder_content(folder_path: str | Path) -> dict[str, float]:
+    """
+    Returns a dictionary of relative file paths and their modification times.
+
+    Args:
+        folder_path: Path to the folder to scan.
+
+    Returns:
+        Dictionary mapping relative file paths to their modification timestamps.
+    """
     folder_path = Path(folder_path)
     if not folder_path.exists():
         return {}
 
-    files = {}
+    files: dict[str, float] = {}
     for root, _, filenames in os.walk(folder_path):
         for f in filenames:
             full_path = Path(root) / f
@@ -20,11 +39,30 @@ def get_folder_content(folder_path):
     return files
 
 
-def compare_folders(local_path, backup_files):
+def compare_folders(local_path: str | Path, backup_files: Union[list[str], dict[str, float]]) -> FolderDiffResult:
     """
     Compares local folder content with backup files.
-    backup_files can be a list of relative paths or a dict of {rel_path: mtime}.
+
+    Files with newer local modification times are included in 'only_local' to trigger sync.
+
+    Args:
+        local_path: Path to the local folder.
+        backup_files: Either a list of relative paths or a dictionary mapping
+                     relative paths to modification timestamps.
+
+    Returns:
+        A TypedDict containing lists of files 'only_local', 'only_backup', and 'in_both'.
+
+    Raises:
+        FileNotFoundError: If local_path does not exist.
+        NotADirectoryError: If local_path is not a directory.
     """
+    local_path = Path(local_path)
+    if not local_path.exists():
+        raise FileNotFoundError(f"Local path does not exist: {local_path}")
+    if not local_path.is_dir():
+        raise NotADirectoryError(f"Local path is not a directory: {local_path}")
+
     local_files_dict = get_folder_content(local_path)
     local_paths = set(local_files_dict.keys())
 

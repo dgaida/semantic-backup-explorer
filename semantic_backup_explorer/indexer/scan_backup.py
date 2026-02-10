@@ -1,40 +1,65 @@
+"""Module for scanning backup directories and creating a markdown index."""
+
 import os
 from pathlib import Path
+from typing import Callable, Optional
 
 from tqdm import tqdm
 
 
-def scan_backup(root_path, output_file="data/backup_index.md", callback=None):
+def scan_backup(
+    root_path: str | Path,
+    output_file: str | Path = "data/backup_index.md",
+    callback: Optional[Callable[[int, str], None]] = None,
+) -> None:
     """
     Recursively scans the root_path and writes every file and folder
     with its full path into a structured markdown file.
+
+    Args:
+        root_path: Path to the backup directory to scan.
+        output_file: Path to the output markdown file.
+        callback: Optional callback function called with (count, current_root).
+
+    Raises:
+        FileNotFoundError: If root_path does not exist.
+        NotADirectoryError: If root_path is not a directory.
+        PermissionError: If output_file cannot be written.
     """
     root_path = Path(root_path).resolve()
+    if not root_path.exists():
+        raise FileNotFoundError(f"Backup path does not exist: {root_path}")
+    if not root_path.is_dir():
+        raise NotADirectoryError(f"Backup path is not a directory: {root_path}")
+
     output_path = Path(output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("# Backup Index\n\n")
-        f.write(f"Root: {root_path}\n\n")
+    try:
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write("# Backup Index\n\n")
+            f.write(f"Root: {root_path}\n\n")
 
-        count = 0
-        for root, dirs, files in tqdm(os.walk(root_path), desc="Scanning directories"):
-            count += 1
-            if callback:
-                callback(count, root)
-            current_path = Path(root)
-            f.write(f"## {current_path}\n\n")
+            count = 0
+            for root, dirs, files in tqdm(os.walk(root_path), desc="Scanning directories"):
+                count += 1
+                if callback:
+                    callback(count, root)
+                current_path = Path(root)
+                f.write(f"## {current_path}\n\n")
 
-            for d in sorted(dirs):
-                f.write(f"- {current_path / d}/\n")
-            for name in sorted(files):
-                file_path = current_path / name
-                try:
-                    mtime = os.path.getmtime(file_path)
-                    f.write(f"- {file_path} | mtime:{mtime}\n")
-                except Exception:
-                    f.write(f"- {file_path}\n")
-            f.write("\n")
+                for d in sorted(dirs):
+                    f.write(f"- {current_path / d}/\n")
+                for name in sorted(files):
+                    file_path = current_path / name
+                    try:
+                        mtime = os.path.getmtime(file_path)
+                        f.write(f"- {file_path} | mtime:{mtime}\n")
+                    except Exception:
+                        f.write(f"- {file_path}\n")
+                f.write("\n")
+    except PermissionError as e:
+        raise PermissionError(f"Cannot write to output file: {output_path}") from e
 
 
 if __name__ == "__main__":
@@ -45,4 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", default="data/backup_index.md", help="Path to the output markdown file.")
     args = parser.parse_args()
 
-    scan_backup(args.path, args.output)
+    try:
+        scan_backup(args.path, args.output)
+    except Exception as e:
+        print(f"Error: {e}")

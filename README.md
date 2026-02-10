@@ -11,264 +11,103 @@ Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchroni
 
 ---
 
-## 🚀 Motivation
+## 🚀 Schnellstart (5 Minuten)
 
-Backups wachsen schnell – und werden unübersichtlich.
-
-Dieses Projekt ermöglicht:
-
-✅ Rekursives Erfassen kompletter Backup-Festplatten  
-✅ Speicherung der vollständigen Ordnerstruktur als Markdown  
-✅ Semantische Suche in Backups (RAG + LLM)  
-✅ Vergleich lokaler Ordner mit Backup-Ständen  
-✅ Visuelle Darstellung von Abweichungen  
-✅ One-Click-Synchronisation fehlender Dateien
-
----
-
-## 🧠 Kernfunktionen
-
-### 1. Backup-Struktur erfassen → Markdown
-
-Ein Python-Skript:
-
-* durchläuft rekursiv externe Laufwerke
-* speichert **jede Datei & jeden Ordner mit vollem Pfad**
-* schreibt alles in eine strukturierte `backup_index.md`
-
-Beispiel:
-
-```md
-## /media/backup/photos/2022
-
-- /media/backup/photos/2022/img001.jpg
-- /media/backup/photos/2022/img002.jpg
-```
-
----
-
-### 2. Semantische Suche mit RAG
-
-* Markdown wird in **ordnerbasierte Chunks** zerlegt
-* jeder Chunk = genau ein Ordner + enthaltene Dateien
-* Embeddings + Retrieval
-* Antwortgenerierung über LLM (`llm_client`)
-
-Beispiel-Fragen:
-
-> Wo liegen alte Steuerunterlagen von 2021?
-> Welche Backups enthalten Projekt XY?
-
----
-
-### 3. Ordnervergleich (lokal vs Backup)
-
-In der Gradio App:
-
-🔍 Lokaler Ordner auswählen  
-🔍 Entsprechender Backup-Ordner wird keyword-basiert gefunden  
-📊 Vergleich zeigt:
-
-* nur im Backup vorhanden
-* nur lokal vorhanden
-* in beiden vorhanden
-
----
-
-### 4. Backup-Synchronisation
-
-Per Button:
-
-➡️ alle fehlenden Dateien werden auf die externe Festplatte kopiert
-(sobald angeschlossen)
-
----
-
-## 🖥 Gradio Web Interface
-
-Mehrere Tabs:
-
-| Tab                | Funktion             |
-| ------------------ | -------------------- |
-| 📚 Semantic Search | Fragen an das Backup |
-| 📂 Folder Compare  | Lokal vs Backup      |
-| 🔄 Sync            | Dateien kopieren     |
-| 📄 Index Viewer    | Markdown anzeigen    |
-
----
-
-## 📁 Empfohlene Projektstruktur
-
-```
-semantic-backup-explorer/
-│
-├── README.md
-├── requirements.txt
-├── .env
-│
-├── data/
-│   ├── backup_index.md
-│   ├── chunks/
-│   └── embeddings/
-│
-├── src/
-│   ├── indexer/
-│   │   └── scan_backup.py
-│   │
-│   ├── chunking/
-│   │   └── folder_chunker.py
-│   │
-│   ├── rag/
-│   │   ├── embedder.py
-│   │   ├── retriever.py
-│   │   └── rag_pipeline.py
-│   │
-│   ├── compare/
-│   │   └── folder_diff.py
-│   │
-│   ├── sync/
-│   │   └── sync_missing.py
-│   │
-│   └── app/
-│       └── gradio_app.py
-│
-└── scripts/
-    └── build_index.py
-```
-
----
-
-## ⚙️ Installation
-
-**Requirements:** Python 3.10, 3.11, 3.12 or 3.13.
-*(Note: Python 3.14+ is currently not supported due to dependency incompatibilities.)*
-
+### 1. Installation
 ```bash
-git clone https://github.com/yourname/semantic-backup-explorer.git
+git clone https://github.com/dgaida/semantic-backup-explorer.git
 cd semantic-backup-explorer
-pip install -r requirements.txt
+pip install -e .
+cp .env.example .env
+# Trage deine API-Keys (GROQ_API_KEY) in .env ein
 ```
 
----
-
-## 📦 Abhängigkeiten (Beispiel)
-
-```
-gradian
-langchain
-chromadb
-sentence-transformers
-llm-client
-python-dotenv
-tqdm
-```
-
----
-
-## 📄 Backup Index erzeugen
-
+### 2. Ersten Index erstellen
 ```bash
-python scripts/build_index.py --path /media/external_backup
+python scripts/build_index.py --path /path/to/backup
 ```
 
-Erzeugt:
-
-```
-data/backup_index.md
-```
-
----
-
-## 🌐 Gradio App starten
-
+### 3. Web-App starten
 ```bash
-python semantic_backup_explorer/app/gradio_app.py
+python -m semantic_backup_explorer.cli.ui.gradio_app
 ```
+Öffne http://localhost:7860 und stelle deine erste Frage!
 
-Browser:
+---
+
+## 🏗 Architektur
 
 ```
-http://localhost:7860
+┌─────────────────┐
+│  Gradio Web UI  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────┐
+│ RAG Pipeline    │◄─────┤  ChromaDB    │
+│ (Core Logic)    │      │  (Embeddings)│
+└────────┬────────┘      └──────────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────┐
+│ Backup Index    │◄─────┤  LLM Client  │
+│ (Markdown)      │      │  (Groq)      │
+└─────────────────┘      └──────────────┘
 ```
 
 ---
 
-## 🧩 RAG Architektur
+## 📁 Projektstruktur
 
 ```
-Markdown → Ordner-Chunks → Embeddings → Vector DB
-                                 ↓
-                              Retrieval
-                                 ↓
-                              LLM Client
+semantic_backup_explorer/
+├── cli/            # CLI-spezifische Logik & UI
+│   ├── commands/   # Zukünftige CLI Commands
+│   └── ui/         # Gradio Web Interface
+├── core/           # Kern-Businesslogik (BackupOperations)
+├── indexer/        # Scanning-Logik
+├── chunking/       # Markdown Partitionierung
+├── rag/            # Embedding & Retrieval
+├── compare/        # Folder Diffing
+├── sync/           # Datei Synchronisation
+├── utils/          # Hilfsfunktionen (Config, Logging, Paths)
+└── exceptions.py   # Custom Exceptions
 ```
-
-✔ Jeder Chunk entspricht genau einem Ordner
-✔ Keine Fragmentierung einzelner Verzeichnisse
 
 ---
 
-## 📊 Visualisierung
+## ⚙️ Kernfunktionen
 
-* 🔵 nur im Backup
-* 🔴 nur lokal
-* 🟢 in beiden vorhanden
-
-Optional mit Tabellen oder Tree Views.
+* **Backup-Struktur erfassen**: Rekursives Scanning und Speicherung als Markdown (`backup_index.md`).
+* **Semantische Suche (RAG)**: Ordnerbasierte Chunking-Logik ermöglicht präzise Suche in Backup-Strukturen via LLM.
+* **Intelligenter Ordnervergleich**: Lokale Ordner werden automatisch (keyword-basiert oder via RAG) ihrem Backup-Gegenstück zugeordnet und verglichen.
+* **One-Click Sync**: Fehlende oder neuere lokale Dateien werden direkt auf das Backup-Laufwerk synchronisiert.
 
 ---
 
-## 🛠 Entwicklung & CI/CD
+## ❓ Troubleshooting
 
-### Entwicklungsumgebung einrichten
-
+### "GROQ_API_KEY nicht gefunden"
+Stelle sicher, dass die `.env` Datei im Root-Verzeichnis existiert und einen gültigen API-Key enthält:
 ```bash
-pip install -e ".[dev]"
+echo "GROQ_API_KEY=gsk_xxx" > .env
 ```
+
+### "Python 3.14+ nicht unterstützt"
+Das Projekt nutzt ChromaDB, welches aktuell Inkompatibilitäten mit Python 3.14+ aufweist. Nutze Python 3.10-3.13.
+
+---
+
+## 🛠 Entwicklung
+
+Details zur Entwicklung, Testing und CI/CD findest du in der [CONTRIBUTING.md](CONTRIBUTING.md). Detailed documentation is available in the `docs/` folder.
 
 ### Tests ausführen
-
 ```bash
 pytest
 ```
 
-### Code-Qualität & Linting
-
-Wir verwenden **Ruff** für Linting und Formatierung.
-
-```bash
-# Check
-ruff check .
-
-# Formatieren
-ruff format .
-```
-
-### Pre-commit Hooks
-
-```bash
-pre-commit install
-pre-commit run --all-files
-```
-
-### CI/CD
-
-Ein GitHub Action Workflow läuft bei jedem Push auf `main` und überprüft:
-* Code-Qualität (Ruff)
-* Tests (Pytest) über mehrere Python-Versionen (3.10 - 3.13)
-
----
-
-## 🛣 Roadmap
-
-* [ ] Hash-basierter Dateivergleich
-* [ ] Versionierte Backups
-* [ ] Zeitbasierte Snapshots
-* [ ] Auto-Sync Scheduler
-* [ ] Backup Health Report
-
 ---
 
 ## 📜 Lizenz
-
 MIT License
