@@ -36,6 +36,24 @@ except Exception as e:
 operations = BackupOperations(index_path=config.index_path, rag_pipeline=pipeline)
 
 
+def select_folder() -> str:
+    """Opens a native folder selection dialog."""
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+
+        root = tk.Tk()
+        root.withdraw()
+        # Bring dialog to front
+        root.attributes("-topmost", True)
+        folder = filedialog.askdirectory()
+        root.destroy()
+        return folder
+    except Exception as e:
+        logger.error(f"Error opening folder dialog: {e}")
+        return ""
+
+
 def semantic_search(query: str) -> tuple[str, str]:
     """Handles semantic search queries."""
     if not pipeline:
@@ -194,17 +212,50 @@ def run_rebuild_embeddings(progress: gr.Progress = gr.Progress()) -> str:
 
 # UI Definition
 with gr.Blocks(title="Semantic Backup Explorer") as demo:
-    gr.Markdown("# 📦 Semantic Backup Explorer")
+    with gr.Group():
+        gr.Markdown(
+            """
+        # 📦 Semantic Backup Explorer
+
+        Willkommen beim Semantic Backup Explorer! Dieses Tool hilft dir dabei, deine Backups auf externen Laufwerken intelligent zu verwalten.
+
+        - **Semantische Suche**: Finde Ordner anhand ihres Inhalts, auch wenn du den genauen Namen vergessen hast.
+        - **Ordner-Vergleich**: Vergleiche lokale Ordner blitzschnell mit ihrem Gegenstück im Backup.
+        - **Einfacher Sync**: Kopiere fehlende oder neuere Dateien mit nur einem Klick auf dein Backup-Laufwerk.
+
+        *Tipp: Erstelle zuerst einen Index deines Backup-Laufwerks im Tab 'Index Viewer'.*
+        """
+        )
 
     with gr.Tab("📚 Semantic Search") as semantic_search_tab:
-        embeddings_warning = gr.Markdown(visible=False)
-        rebuild_embeddings_button = gr.Button("Embeddings erstellen", visible=False)
+        gr.Markdown("### Durchsuche dein Backup mit natürlicher Sprache")
+        with gr.Group():
+            embeddings_warning = gr.Markdown(visible=False)
+            rebuild_embeddings_button = gr.Button(
+                "Embeddings erstellen / aktualisieren",
+                visible=False,
+                variant="secondary",
+            )
 
         with gr.Row():
-            query_input = gr.Textbox(label="Frage an dein Backup", placeholder="Wo liegen alte Steuerunterlagen?")
-            search_button = gr.Button("Suchen")
-        answer_output = gr.Textbox(label="Antwort")
-        context_output = gr.Textbox(label="Gefundene Ordner (Kontext)", lines=10)
+            query_input = gr.Textbox(
+                label="Deine Frage",
+                placeholder="z.B. Wo liegen meine alten Steuererklärungen?",
+                info="Frage nach Inhalten, Projekten oder Dokumenten.",
+                scale=4,
+            )
+            search_button = gr.Button("🔍 Suchen", variant="primary", scale=1)
+
+        with gr.Row():
+            with gr.Column(scale=1):
+                answer_output = gr.Textbox(label="KI-Antwort", lines=5)
+            with gr.Column(scale=1):
+                context_output = gr.Textbox(
+                    label="Gefundene Ordner (Kontext)",
+                    lines=10,
+                    info="Diese Ordner wurden als relevant für deine Suche identifiziert.",
+                )
+
         search_button.click(semantic_search, inputs=query_input, outputs=[answer_output, context_output])
 
         semantic_search_tab.select(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
@@ -213,37 +264,83 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
         )
 
     with gr.Tab("📂 Folder Compare"):
-        local_path_input = gr.Textbox(label="Lokaler Ordner Pfad")
-        compare_button = gr.Button("Vergleichen")
+        gr.Markdown("### Lokalen Ordner mit Backup vergleichen und synchronisieren")
+        with gr.Group():
+            with gr.Row():
+                local_path_display = gr.Textbox(
+                    label="Ausgewählter lokaler Ordner",
+                    placeholder="Klicke auf 'Ordner wählen'...",
+                    interactive=False,
+                    info="Der Ordner auf deinem Computer, den du sichern möchtest.",
+                    scale=4,
+                )
+                browse_local_btn = gr.Button("📁 Ordner wählen", scale=1)
+
+            compare_button = gr.Button("🔍 Vergleichen", variant="primary")
+
+        browse_local_btn.click(select_folder, outputs=local_path_display)
 
         backup_found_info = gr.Markdown()
         target_root_state = gr.State()
 
         with gr.Row():
-            only_local_out = gr.Textbox(label="🔴 Nur Lokal (Fehlt im Backup)", lines=10)
-            only_backup_out = gr.Textbox(label="🔵 Nur im Backup", lines=10)
-            in_both_out = gr.Textbox(label="🟢 In beiden vorhanden", lines=10)
+            only_local_out = gr.Textbox(
+                label="🔴 Nur Lokal",
+                lines=10,
+                info="Diese Dateien fehlen im Backup oder sind lokal neuer.",
+            )
+            only_backup_out = gr.Textbox(
+                label="🔵 Nur im Backup",
+                lines=10,
+                info="Diese Dateien existieren nur auf dem Backup-Laufwerk.",
+            )
+            in_both_out = gr.Textbox(
+                label="🟢 Synchron",
+                lines=10,
+                info="Diese Dateien sind auf beiden Seiten identisch.",
+            )
 
         compare_button.click(
             folder_compare,
-            inputs=local_path_input,
+            inputs=local_path_display,
             outputs=[backup_found_info, only_local_out, only_backup_out, in_both_out, target_root_state],
         )
 
-        sync_button = gr.Button("🔄 Synchronisieren (Fehlende Dateien kopieren)")
-        sync_status = gr.Textbox(label="Sync Status")
-        sync_button.click(run_sync, inputs=[only_local_out, local_path_input, target_root_state], outputs=sync_status)
+        with gr.Group():
+            sync_button = gr.Button("🔄 Synchronisieren", variant="secondary")
+            gr.Markdown("*Kopiert alle Dateien aus der Liste 'Nur Lokal' in den entsprechenden Backup-Ordner.*")
+            sync_status = gr.Textbox(label="Sync Status")
+
+        sync_button.click(run_sync, inputs=[only_local_out, local_path_display, target_root_state], outputs=sync_status)
 
     with gr.Tab("📄 Index Viewer"):
-        with gr.Row():
-            backup_path_input = gr.Textbox(label="Backup Pfad zum Scannen", placeholder="/path/to/backup")
-            create_index_button = gr.Button("Index erstellen")
+        gr.Markdown("### Backup-Index verwalten")
+        with gr.Group():
+            with gr.Row():
+                backup_path_display = gr.Textbox(
+                    label="Backup Pfad zum Scannen",
+                    placeholder="Wähle das Hauptverzeichnis deines Backup-Laufwerks...",
+                    interactive=False,
+                    info="Das Verzeichnis, das indiziert werden soll (z.B. Laufwerk E:).",
+                    scale=4,
+                )
+                browse_backup_btn = gr.Button("📁 Ordner wählen", scale=1)
+
+            create_index_button = gr.Button("⚡ Index erstellen", variant="primary")
+
+        browse_backup_btn.click(select_folder, outputs=backup_path_display)
 
         index_status = gr.Textbox(label="Status")
-        refresh_button = gr.Button("Aktualisieren")
-        index_content = gr.Textbox(label="backup_index.md", lines=20, value=get_index_viewer())
+        with gr.Row():
+            refresh_button = gr.Button("🔄 Ansicht aktualisieren")
+        index_content = gr.Textbox(
+            label="Inhalt von backup_index.md",
+            lines=20,
+            value=get_index_viewer(),
+            info="Hier siehst du die aktuelle Liste aller indizierten Dateien und Ordner.",
+        )
 
-        create_index_button.click(create_index, inputs=backup_path_input, outputs=[index_status, index_content])
+        create_index_button.click(create_index, inputs=backup_path_display, outputs=[index_status, index_content])
         refresh_button.click(get_index_viewer, inputs=[], outputs=index_content)
 
     demo.load(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
@@ -251,7 +348,7 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
 
 def main() -> None:
     """Launches the Gradio application."""
-    demo.launch(server_name="0.0.0.0", server_port=7860, inbrowser=True)
+    demo.launch(server_name="0.0.0.0", server_port=7860, inbrowser=True, theme=gr.themes.Soft())
 
 
 if __name__ == "__main__":

@@ -6,8 +6,30 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![codecov](https://codecov.io/gh/dgaida/semantic-backup-explorer/branch/main/graph/badge.svg)](https://codecov.io/gh/dgaida/semantic-backup-explorer)
 
-Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchronisation von Backups** auf externen Festplatten – mit einer **Gradio Web-App**, **RAG-Pipeline** und Anbindung an ein LLM über
-👉 [https://dgaida.github.io/llm_client/](https://dgaida.github.io/llm_client/)
+Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchronisation von Backups** auf externen Festplatten.
+
+Der Semantic Backup Explorer hilft dir dabei, den Überblick über deine verstreuten Backups auf verschiedenen externen Laufwerken zu behalten. Er nutzt modernste KI-Technologie (Large Language Models), um deine Dateien auffindbar zu machen – sogar wenn du den genauen Namen eines Ordners vergessen hast!
+
+---
+
+## 🤔 Warum Semantic Backup Explorer?
+
+Hast du mehrere externe Festplatten und suchst verzweifelt nach den Hochzeitsfotos von vor 5 Jahren oder den Steuerunterlagen aus 2018? Normalerweise müsstest du jede Platte anschließen und manuell durchsuchen.
+
+**Hier kommt der Semantic Backup Explorer ins Spiel:**
+
+1.  **Einmal Scannen (Indizieren):** Die App liest einmalig die Struktur deiner Festplatte ein und speichert sie in einem kompakten "Index" (einer Textdatei).
+2.  **Suchen ohne Hardware:** Du kannst deine Backups durchsuchen, **ohne** dass die Festplatten angeschlossen sein müssen. Die KI versteht Zusammenhänge (z.B. findet sie "Rechnungen", wenn du nach "Finanzen" suchst).
+3.  **Intelligenter Abgleich:** Wenn du weißt, auf welcher Platte das Backup liegt, hilft dir die App dabei, deinen aktuellen Arbeitsordner mit dem Backup zu vergleichen und nur die neuen Dateien zu sichern.
+
+---
+
+## 🌟 Hauptfunktionen
+
+*   🔍 **Semantische Suche**: Frage einfach: "Wo habe ich meine Python-Projekte gesichert?"
+*   📂 **Ordner-Vergleich**: Sieh auf einen Blick, welche Dateien lokal vorhanden sind, aber im Backup fehlen.
+*   🔄 **One-Click Sync**: Kopiere fehlende Dateien direkt auf das Backup-Laufwerk.
+*   🏷️ **Laufwerks-Erkennung**: Erkennt automatisch den Namen (Label) deiner Festplatten unter Windows.
 
 ---
 

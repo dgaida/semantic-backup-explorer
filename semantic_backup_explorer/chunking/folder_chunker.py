@@ -26,9 +26,17 @@ def chunk_markdown(filepath: str | Path) -> list[dict[str, Any]]:
         lines = f.readlines()
 
     root_path = None
+    drive_label = None
     for line in lines:
         if line.startswith("Root: "):
-            root_path = Path(line[6:].strip())
+            content_after_root = line[6:].strip()
+            # Handle "Root: J:\ (Label: MyBackup)"
+            if " (Label: " in content_after_root:
+                root_part, label_part = content_after_root.split(" (Label: ", 1)
+                root_path = Path(root_part.strip())
+                drive_label = label_part.rstrip(")").strip()
+            else:
+                root_path = Path(content_after_root)
             break
 
     if root_path is None:
@@ -57,18 +65,22 @@ def chunk_markdown(filepath: str | Path) -> list[dict[str, Any]]:
             # folder_path is not under root_path
             depth = 0
 
+        chunk_content = rc
+        if drive_label:
+            chunk_content = f"Backup Drive: {drive_label}\n{chunk_content}"
+
         if depth <= 4 or not chunks:
             chunks.append(
                 {
                     "folder": str(folder_path),
-                    "content": rc,
+                    "content": chunk_content,
                     "metadata": {"source": str(filepath), "folder": str(folder_path), "depth": depth},
                 }
             )
         else:
             # Append to last chunk
             current_content = str(chunks[-1]["content"])
-            chunks[-1]["content"] = current_content + "\n\n" + rc
+            chunks[-1]["content"] = current_content + "\n\n" + chunk_content
 
     return chunks
 
