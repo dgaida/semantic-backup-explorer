@@ -25,7 +25,11 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "pre-commit"
+    "pre-commit",
+    "mypy",
+    "types-tqdm",
+    "bandit",
+    "safety"
 ]
 
 [tool.ruff]
@@ -42,6 +46,52 @@ known-first-party = ["semantic_backup_explorer"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--cov=semantic_backup_explorer --cov-report=term-missing"
 
 [tool.setuptools]
-packages = ["semantic_backup_explorer", "semantic_backup_explorer.app", "semantic_backup_explorer.chunking", "semantic_backup_explorer.compare", "semantic_backup_explorer.indexer", "semantic_backup_explorer.rag", "semantic_backup_explorer.sync"]
+packages = [
+    "semantic_backup_explorer",
+    "semantic_backup_explorer.cli",
+    "semantic_backup_explorer.cli.ui",
+    "semantic_backup_explorer.chunking",
+    "semantic_backup_explorer.compare",
+    "semantic_backup_explorer.core",
+    "semantic_backup_explorer.indexer",
+    "semantic_backup_explorer.rag",
+    "semantic_backup_explorer.sync",
+    "semantic_backup_explorer.utils"
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "chromadb.*",
+    "sentence_transformers.*",
+    "llm_client.*",
+    "gradio.*",
+    "tqdm.*",
+    "dotenv.*",
+    "pydantic_settings.*"
+]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["semantic_backup_explorer"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/cli/ui/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+fail_under = 80

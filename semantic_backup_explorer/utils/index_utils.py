@@ -1,18 +1,22 @@
+"""Utilities for parsing and searching the markdown backup index."""
+
 import os
+from pathlib import Path
+from typing import Optional
+
+from semantic_backup_explorer.utils.path_utils import normalize_path
 
 
-def normalize_path(path):
-    """Normalizes path to use forward slashes for internal comparison."""
-    if not path:
-        return ""
-    return str(path).replace("\\", "/").rstrip("/")
-
-
-def find_backup_folder(folder_name, index_path):
+def find_backup_folder(folder_name: str, index_path: str | Path) -> Optional[str]:
     """
     Searches the index file for a folder header (##) that contains folder_name.
-    Returns the first matching full path found.
-    Handles partial matches like 'Finanzen' matching 'Finanzen (Backup)'.
+
+    Args:
+        folder_name: The name of the folder to search for.
+        index_path: Path to the markdown index file.
+
+    Returns:
+        The first matching full path found, or None if no match is found.
     """
     if not os.path.exists(index_path):
         return None
@@ -33,12 +37,18 @@ def find_backup_folder(folder_name, index_path):
     return None
 
 
-def get_all_files_from_index(backup_root, index_path):
+def get_all_files_from_index(backup_root: str | Path, index_path: str | Path) -> dict[str, float]:
     """
     Extracts all file paths from the index that are sub-paths of backup_root.
-    Returns a dictionary mapping relative paths to mtimes.
+
+    Args:
+        backup_root: The root path in the index to filter by.
+        index_path: Path to the markdown index file.
+
+    Returns:
+        A dictionary mapping relative paths to modification timestamps.
     """
-    files = {}
+    files: dict[str, float] = {}
     if not os.path.exists(index_path):
         return files
 
@@ -51,10 +61,11 @@ def get_all_files_from_index(backup_root, index_path):
 
                 # Check for mtime
                 if " | mtime:" in line_content:
-                    file_path, mtime_str = line_content.rsplit(" | mtime:", 1)
                     try:
+                        file_path, mtime_str = line_content.rsplit(" | mtime:", 1)
                         mtime = float(mtime_str)
                     except ValueError:
+                        file_path = line_content
                         mtime = 0.0
                 else:
                     file_path = line_content

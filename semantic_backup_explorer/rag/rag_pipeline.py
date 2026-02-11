@@ -1,3 +1,5 @@
+"""Module for the RAG (Retrieval-Augmented Generation) pipeline."""
+
 from dotenv import load_dotenv
 from llm_client import LLMClient
 
@@ -8,20 +10,44 @@ load_dotenv()
 
 
 class RAGPipeline:
-    def __init__(self):
+    """
+    Orchestrates the retrieval and generation process to answer questions about backups.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize the RAG pipeline with embedder, retriever, and LLM client.
+        """
         self.embedder = Embedder()
         self.retriever = Retriever()
         # Default to groq as requested
         self.client = LLMClient(api_choice="groq")
 
-    def answer_question(self, question):
+    def answer_question(self, question: str) -> tuple[str, str]:
+        """
+        Answers a question using retrieved context from the backup index.
+
+        Args:
+            question: The user's question.
+
+        Returns:
+            A tuple of (answer_text, context_text).
+        """
         # 1. Embed question
         query_embedding = self.embedder.embed_query(question)
 
         # 2. Retrieve relevant chunks
         results = self.retriever.query(query_embedding, n_results=3)
 
-        context = "\n\n".join(results["documents"][0])
+        documents = results.get("documents")
+        if documents and len(documents) > 0:
+            doc_list = documents[0]
+            if doc_list:
+                context = "\n\n".join(doc_list)
+            else:
+                context = ""
+        else:
+            context = ""
 
         # 3. Generate answer
         prompt = f"""
