@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class BackupConfig(BaseSettings):
+class BackupConfig(BaseSettings):  # type: ignore[misc]
     """
     Central configuration for backup operations.
 

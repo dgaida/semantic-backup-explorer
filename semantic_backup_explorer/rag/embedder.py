@@ -1,5 +1,7 @@
 """Module for generating text embeddings using SentenceTransformers."""
 
+from typing import cast
+
 from sentence_transformers import SentenceTransformer
 
 
@@ -29,7 +31,7 @@ class Embedder:
         Returns:
             A list of floats representing the embedding.
         """
-        return self.model.encode(text).tolist()
+        return cast(list[float], self.model.encode(text).tolist())
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """
@@ -41,4 +43,4 @@ class Embedder:
         Returns:
             A list of embedding vectors.
         """
-        return self.model.encode(texts).tolist()  # type: ignore[no-any-return]
+        return cast(list[list[float]], self.model.encode(texts).tolist())

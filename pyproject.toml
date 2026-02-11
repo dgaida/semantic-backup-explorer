@@ -31,6 +31,11 @@ dev = [
     "bandit",
     "safety"
 ]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]"
+]
 
 [tool.ruff]
 line-length = 127

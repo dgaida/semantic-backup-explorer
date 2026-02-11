@@ -1,0 +1,113 @@
+# 📦 Semantic Backup Explorer
+
+[![CI](https://github.com/dgaida/semantic-backup-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/dgaida/semantic-backup-explorer/actions/workflows/ci.yml)
+![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![codecov](https://codecov.io/gh/dgaida/semantic-backup-explorer/branch/main/graph/badge.svg)](https://codecov.io/gh/dgaida/semantic-backup-explorer)
+
+Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchronisation von Backups** auf externen Festplatten – mit einer **Gradio Web-App**, **RAG-Pipeline** und Anbindung an ein LLM über
+👉 [https://dgaida.github.io/llm_client/](https://dgaida.github.io/llm_client/)
+
+---
+
+## 🚀 Schnellstart (5 Minuten)
+
+### 1. Installation
+```bash
+git clone https://github.com/dgaida/semantic-backup-explorer.git
+cd semantic-backup-explorer
+pip install -e .
+cp .env.example .env
+# Trage deine API-Keys (GROQ_API_KEY) in .env ein
+```
+
+### 2. Ersten Index erstellen
+```bash
+python scripts/build_index.py --path /path/to/backup
+```
+
+### 3. Web-App starten
+```bash
+python -m semantic_backup_explorer.cli.ui.gradio_app
+```
+Öffne http://localhost:7860 und stelle deine erste Frage!
+
+---
+
+## 🏗 Architektur
+
+```
+┌─────────────────┐
+│  Gradio Web UI  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────┐
+│ RAG Pipeline    │◄─────┤  ChromaDB    │
+│ (Core Logic)    │      │  (Embeddings)│
+└────────┬────────┘      └──────────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────┐
+│ Backup Index    │◄─────┤  LLM Client  │
+│ (Markdown)      │      │  (Groq)      │
+└─────────────────┘      └──────────────┘
+```
+
+---
+
+## 📁 Projektstruktur
+
+```
+semantic_backup_explorer/
+├── cli/            # CLI-spezifische Logik & UI
+│   ├── commands/   # Zukünftige CLI Commands
+│   └── ui/         # Gradio Web Interface
+├── core/           # Kern-Businesslogik (BackupOperations)
+├── indexer/        # Scanning-Logik
+├── chunking/       # Markdown Partitionierung
+├── rag/            # Embedding & Retrieval
+├── compare/        # Folder Diffing
+├── sync/           # Datei Synchronisation
+├── utils/          # Hilfsfunktionen (Config, Logging, Paths)
+└── exceptions.py   # Custom Exceptions
+```
+
+---
+
+## ⚙️ Kernfunktionen
+
+* **Backup-Struktur erfassen**: Rekursives Scanning und Speicherung als Markdown (`backup_index.md`).
+* **Semantische Suche (RAG)**: Ordnerbasierte Chunking-Logik ermöglicht präzise Suche in Backup-Strukturen via LLM.
+* **Intelligenter Ordnervergleich**: Lokale Ordner werden automatisch (keyword-basiert oder via RAG) ihrem Backup-Gegenstück zugeordnet und verglichen.
+* **One-Click Sync**: Fehlende oder neuere lokale Dateien werden direkt auf das Backup-Laufwerk synchronisiert.
+
+---
+
+## ❓ Troubleshooting
+
+### "GROQ_API_KEY nicht gefunden"
+Stelle sicher, dass die `.env` Datei im Root-Verzeichnis existiert und einen gültigen API-Key enthält:
+```bash
+echo "GROQ_API_KEY=gsk_xxx" > .env
+```
+
+### "Python 3.14+ nicht unterstützt"
+Das Projekt nutzt ChromaDB, welches aktuell Inkompatibilitäten mit Python 3.14+ aufweist. Nutze Python 3.10-3.13.
+
+---
+
+## 🛠 Entwicklung
+
+Details zur Entwicklung, Testing und CI/CD findest du in der [CONTRIBUTING.md](CONTRIBUTING.md). Detailed documentation is available in the `docs/` folder.
+
+### Tests ausführen
+```bash
+pytest
+```
+
+---
+
+## 📜 Lizenz
+MIT License

@@ -45,7 +45,7 @@ class Retriever:
         documents = [c["content"] for c in chunks]
 
         self.collection.add(
-            embeddings=embeddings,  # type: ignore[arg-type]
+            embeddings=embeddings,
             documents=documents,
             metadatas=metadatas,
             ids=ids,
@@ -63,7 +63,7 @@ class Retriever:
             ChromaDB QueryResult containing documents, metadatas, and distances.
         """
         results = self.collection.query(
-            query_embeddings=[query_embedding],  # type: ignore[arg-type]
+            query_embeddings=[query_embedding],
             n_results=n_results,
         )
         return results
