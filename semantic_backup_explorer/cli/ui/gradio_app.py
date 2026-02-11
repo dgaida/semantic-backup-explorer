@@ -211,7 +211,7 @@ def run_rebuild_embeddings(progress: gr.Progress = gr.Progress()) -> str:
 
 
 # UI Definition
-with gr.Blocks(title="Semantic Backup Explorer") as demo:
+with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo:
     with gr.Group():
         gr.Markdown(
             """
@@ -348,7 +348,7 @@ with gr.Blocks(title="Semantic Backup Explorer") as demo:
 
 def main() -> None:
     """Launches the Gradio application."""
-    demo.launch(server_name="0.0.0.0", server_port=7860, inbrowser=True, theme=gr.themes.Soft())
+    demo.launch(server_name="0.0.0.0", server_port=7860, inbrowser=True)
 
 
 if __name__ == "__main__":
