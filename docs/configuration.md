@@ -7,6 +7,7 @@ The Semantic Backup Explorer uses environment variables and a centralized config
 The `BackupConfig` class in `semantic_backup_explorer/utils/config.py` defines the default settings:
 
 - `backup_drive`: The root path of your backup drive (default: `/media/backup`).
+- **Drive Labels (Windows)**: The indexer automatically detects the volume label of your drive on Windows. This information is included in the index to provide better context for the KI search.
 - `index_path`: Path to the generated Markdown index file (default: `data/backup_index.md`).
 - `embeddings_path`: Directory for ChromaDB storage (default: `data/embeddings`).
 - `groq_api_key`: Your Groq API key for the RAG pipeline.

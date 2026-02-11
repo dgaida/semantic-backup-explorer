@@ -24,9 +24,27 @@ python -m semantic_backup_explorer.cli.ui.gradio_app
 
 Navigate to `http://localhost:7860` in your browser.
 
-- **Semantic Search**: Ask questions like "Where are my tax documents?"
-- **Folder Compare**: Enter a local path and click "Vergleichen". The app will find the backup folder and show you what is missing.
-- **Synchronisieren**: Click the sync button to copy missing local files to the backup.
+- **Semantic Search**: Nutze natürliche Sprache. Frage z.B. "Wo liegen meine alten Steuererklärungen?". Die KI durchsucht den Index und nennt dir die wahrscheinlichsten Ordner.
+- **Folder Compare**:
+    1. Klicke auf "Ordner wählen" und suche den lokalen Ordner aus, den du abgleichen möchtest.
+    2. Klicke auf "Vergleichen".
+    3. Die App sucht automatisch das passende Gegenstück auf deinem Backup-Laufwerk (basierend auf dem Namen oder via KI).
+    4. In der Liste "Nur Lokal" siehst du alle Dateien, die noch nicht im Backup sind.
+- **Synchronisieren**: Wenn du im Tab "Folder Compare" bist und Unterschiede gefunden wurden, klicke auf "Synchronisieren", um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren.
+
+## Schritt-für-Schritt für Einsteiger
+
+### 1. Vorbereitung
+Schließe dein Backup-Laufwerk (z.B. eine USB-Festplatte) an deinen Computer an.
+
+### 2. Den Index erstellen
+Gehe zum Tab **Index Viewer**. Wähle über den Button "Ordner wählen" dein Backup-Laufwerk aus (z.B. `E:\`). Klicke auf **Index erstellen**. Die App scannt nun alle Dateien. Das kann je nach Größe der Festplatte ein paar Minuten dauern.
+
+### 3. KI-Suche aktivieren
+Gehe zum Tab **Semantic Search**. Klicke auf den Button **Embeddings erstellen**. Dieser Schritt ist wichtig, damit die KI die Ordnerstruktur "verstehen" kann. Dies muss nur einmal nach dem Erstellen eines neuen Index gemacht werden.
+
+### 4. Suchen und Abgleichen
+Jetzt kannst du über die Suche Ordner finden oder über den Tab **Folder Compare** deine tägliche Arbeit sichern.
 
 ## Automated Sync
 
