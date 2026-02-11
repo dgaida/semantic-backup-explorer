@@ -80,9 +80,7 @@ def main() -> None:
     config_file = Path(args.config)
     source_folders = parse_config(config_file)
     if not source_folders:
-        logger.warning(
-            f"No source folders found in {args.config}. Please add folders under '## Source Folders' as a list."
-        )
+        logger.warning(f"No source folders found in {args.config}. Please add folders under '## Source Folders' as a list.")
         return
 
     operations = BackupOperations(index_path=config.index_path)

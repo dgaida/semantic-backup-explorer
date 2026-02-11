@@ -1,7 +1,7 @@
 """Module for the RAG (Retrieval-Augmented Generation) pipeline."""
 
 from dotenv import load_dotenv
-from llm_client import LLMClient
+from llm_client import LLMClient as LLMClient
 
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.retriever import Retriever
