@@ -17,7 +17,8 @@ dependencies = [
     "tqdm",
     "pydantic-settings",
     "pydantic>=2.0",
-    "typing-extensions>=4.10.0"
+    "typing-extensions>=4.10.0", 
+    "commitizen>=3.0.0"
 ]
 
 [project.optional-dependencies]
@@ -100,3 +101,13 @@ exclude_lines = [
     "if TYPE_CHECKING:",
 ]
 fail_under = 80
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.3.0"
+version_files = [
+    "pyproject.toml:version",
+    "llm_client/__init__.py:__version__"
+]
+tag_format = "v$version"
+update_changelog_on_bump = true
