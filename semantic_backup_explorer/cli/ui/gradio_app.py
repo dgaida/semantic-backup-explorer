@@ -117,8 +117,11 @@ def folder_compare(local_path_str: str) -> ComparisonUIResult:
     if result.error:
         return ComparisonUIResult(f"⚠️ {result.error}", "\n".join(result.only_local), "", "", "")
 
+    metadata = get_index_metadata(config.index_path)
+    label_info = f" (Label: {metadata.label})" if metadata.label else ""
+
     return ComparisonUIResult(
-        status=f"✅ Gefundenes Backup: {result.backup_path}",
+        status=f"✅ Gefundenes Backup im Index{label_info}: {result.backup_path}",
         only_local="\n".join(result.only_local),
         only_backup="\n".join(result.only_backup),
         in_both="\n".join(result.in_both),
@@ -265,6 +268,14 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
 
     with gr.Tab("🔄 One-Click Sync") as sync_tab:
         gr.Markdown("### Lokalen Ordner mit Backup vergleichen und synchronisieren")
+
+        gr.Markdown(
+            """
+            *Hinweis: Der Vergleich erfolgt gegen den gespeicherten **Backup-Index**.
+            Dies ermöglicht einen schnellen Abgleich, ohne dass die Festplatte während der Analyse dauerhaft beansprucht wird.
+            Stelle sicher, dass der Index aktuell ist.*
+            """
+        )
 
         index_info_box = gr.HTML(value=get_index_status_html())
 

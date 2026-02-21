@@ -17,17 +17,16 @@ def test_validate_backup_drive_not_exists(tmp_path):
         config.validate_backup_drive()
 
 
-def test_validate_backup_drive_not_writable(tmp_path):
-    # This might be tricky in some environments, but let's try
+def test_validate_backup_drive_no_longer_checks_writable(tmp_path):
+    # We relaxed the check to avoid false positives on Windows roots.
+    # It should succeed even if read-only, as long as it exists.
     drive = tmp_path / "readonly"
     drive.mkdir()
     drive.chmod(0o555)  # Read and execute only
 
     config = BackupConfig(backup_drive=drive)
-    # On some systems, root can still write even with 555, but usually this works for user
-    # If it fails to raise, we just skip it or accept it.
     try:
-        with pytest.raises(PermissionError):
-            config.validate_backup_drive()
+        # Should not raise PermissionError anymore
+        config.validate_backup_drive()
     finally:
         drive.chmod(0o777)

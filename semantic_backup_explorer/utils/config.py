@@ -21,19 +21,14 @@ class BackupConfig(BaseSettings):  # type: ignore[misc]
 
     def validate_backup_drive(self) -> None:
         """
-        Validate that backup drive exists and is writable.
+        Validate that backup drive exists and is accessible.
 
         Raises:
             ValueError: If backup drive does not exist.
-            PermissionError: If backup drive is not writable.
         """
         if not self.backup_drive.exists():
             raise ValueError(f"Backup drive not found: {self.backup_drive}")
 
-        # Test write
-        test_file = self.backup_drive / ".backup_test"
-        try:
-            test_file.touch()
-            test_file.unlink()
-        except PermissionError as e:
-            raise PermissionError(f"Backup drive not writable: {self.backup_drive}") from e
+        # Note: We used to check writability here by touching a file, but this
+        # can fail on Windows drive roots even if the drive is generally writable.
+        # Writability will be caught during the actual sync process.

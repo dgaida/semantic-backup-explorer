@@ -40,7 +40,7 @@ python -m semantic_backup_explorer.cli.ui.gradio_app
 
 ## ⚙️ Kernfunktionen
 
-*   🔄 **One-Click Sync**: Vergleiche lokale Ordner blitzschnell mit deinem Backup und sichere fehlende Dateien mit nur einem Klick.
+*   🔄 **One-Click Sync**: Vergleiche lokale Ordner blitzschnell mit deinem Backup und sichere fehlende Dateien mit nur einem Klick. Nutzt **Volume Labels** zur Sicherheit bei mehreren Laufwerken.
 *   📄 **Backup-Index**: Erfasse die Struktur deiner Backup-Laufwerke als kompakte Markdown-Datei (`backup_index.md`).
 *   🔍 **Semantische Suche (Optional)**: Nutze KI (LLMs), um deine Backups in natürlicher Sprache zu durchsuchen – auch wenn die Festplatte nicht angeschlossen ist.
 
