@@ -1,3 +1,9 @@
+## v0.5.0 (2026-02-21)
+
+### Feat
+
+- enhance One-Click Sync with index status and drive verification
+
 ## v0.4.0 (2026-02-21)
 
 ### Feat
