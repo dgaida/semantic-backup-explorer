@@ -106,7 +106,7 @@ fail_under = 80
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.3.0"
+version = "0.4.0"
 version_files = [
     "pyproject.toml:version",
     "llm_client/__init__.py:__version__"
