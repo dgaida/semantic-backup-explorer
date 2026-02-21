@@ -1,6 +1,7 @@
 # 📦 Semantic Backup Explorer
 
 [![CI](https://github.com/dgaida/semantic-backup-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/dgaida/semantic-backup-explorer/actions/workflows/ci.yml)
+![Version](https://img.shields.io/badge/version-0.5.0-blue)
 ![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)

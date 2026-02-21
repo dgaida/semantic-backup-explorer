@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "semantic_backup_explorer"
-version = "0.1.0"
+version = "0.5.0"
 description = "A semantic search and sync tool for backups."
 requires-python = ">=3.10, <3.14"
 dependencies = [
@@ -106,10 +106,10 @@ fail_under = 80
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.3.0"
+version = "0.5.0"
 version_files = [
     "pyproject.toml:version",
-    "llm_client/__init__.py:__version__"
+    "semantic_backup_explorer/__init__.py:__version__"
 ]
 tag_format = "v$version"
 update_changelog_on_bump = true

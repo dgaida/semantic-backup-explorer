@@ -41,9 +41,10 @@ jobs:
 
       - name: Bump version and update changelog
         run: |
-          # cz bump handles version bumping in pyproject.toml and llm_client/__init__.py,
+          # cz bump handles version bumping in pyproject.toml and semantic_backup_explorer/__init__.py,
           # updates CHANGELOG.md, and creates a git commit and tag.
-          cz bump --yes
+          # Forced to PATCH (0.0.1) as requested.
+          cz bump --increment PATCH --yes
 
       - name: Push changes
         run: |
