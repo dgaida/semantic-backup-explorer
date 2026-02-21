@@ -10,6 +10,7 @@ import gradio as gr
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
 from semantic_backup_explorer.core.backup_operations import BackupOperations
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
+from semantic_backup_explorer.utils.index_utils import get_index_metadata
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.rag.retriever import Retriever
@@ -72,6 +73,36 @@ class ComparisonUIResult(NamedTuple):
     target_root: str
 
 
+def get_index_status_html() -> str:
+    """Returns a formatted HTML string with index status info."""
+    metadata = get_index_metadata(config.index_path)
+    if not metadata.root_path:
+        return (
+            "<div style='color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 5px;'>"
+            "⚠️ Kein Backup-Index gefunden. Bitte erstelle einen Index im Tab 'Index Viewer'."
+            "</div>"
+        )
+
+    date_str = metadata.mtime.strftime("%d.%m.%Y %H:%M") if metadata.mtime else "Unbekannt"
+    label_str = f" (Label: {metadata.label})" if metadata.label else ""
+
+    html = f"""
+    <div style='background-color: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; border: 1px solid #bee5eb;'>
+        <b>Gelesener Backup-Index (backup_index.md)</b><br>
+        Laufwerk: <code>{metadata.root_path}</code>{label_str}<br>
+        Erstellt am: {date_str} ({metadata.age_days} Tage alt)
+    </div>
+    """
+
+    if metadata.age_days > 7:
+        html += """
+        <div style='color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #f5c6cb;'>
+            ⚠️ <b>Hinweis:</b> Der Index ist älter als 7 Tage. Bitte aktualisiere ihn im Tab 'Index Viewer', um sicherzustellen, dass alle Änderungen auf dem Backup erfasst sind.
+        </div>
+        """
+    return html
+
+
 def folder_compare(local_path_str: str) -> ComparisonUIResult:
     """Compares local folder with backup for UI."""
     if not local_path_str:
@@ -97,6 +128,11 @@ def folder_compare(local_path_str: str) -> ComparisonUIResult:
 
 def run_sync(only_local_text: str, local_root_str: str, target_root_str: str, progress: gr.Progress = gr.Progress()) -> str:
     """Runs the file synchronization process."""
+    # Safety check: Verify the drive again before syncing
+    is_correct, error = operations.verify_backup_drive()
+    if not is_correct:
+        return f"Fehler: {error}"
+
     if not target_root_str or not os.path.exists(target_root_str):
         return "Zielordner existiert nicht oder ist nicht angeschlossen."
 
@@ -227,8 +263,11 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
         """
         )
 
-    with gr.Tab("🔄 One-Click Sync"):
+    with gr.Tab("🔄 One-Click Sync") as sync_tab:
         gr.Markdown("### Lokalen Ordner mit Backup vergleichen und synchronisieren")
+
+        index_info_box = gr.HTML(value=get_index_status_html())
+
         with gr.Group():
             with gr.Row():
                 local_path_display = gr.Textbox(
@@ -277,6 +316,8 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
 
         sync_button.click(run_sync, inputs=[only_local_out, local_path_display, target_root_state], outputs=sync_status)
 
+        sync_tab.select(get_index_status_html, outputs=index_info_box)
+
     with gr.Tab("📄 Index Viewer"):
         gr.Markdown("### Backup-Index verwalten")
         with gr.Group():
@@ -304,7 +345,9 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
             info="Hier siehst du die aktuelle Liste aller indizierten Dateien und Ordner.",
         )
 
-        create_index_button.click(create_index, inputs=backup_path_display, outputs=[index_status, index_content])
+        create_index_button.click(create_index, inputs=backup_path_display, outputs=[index_status, index_content]).then(
+            get_index_status_html, outputs=index_info_box
+        )
         refresh_button.click(get_index_viewer, inputs=[], outputs=index_content)
 
     with gr.Tab("📚 Semantic Search") as semantic_search_tab:
@@ -363,7 +406,9 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
                 check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
             )
 
-    demo.load(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
+    demo.load(
+        check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
+    ).then(get_index_status_html, outputs=index_info_box)
 
 
 def main() -> None:

@@ -7,7 +7,12 @@ from typing import Optional
 
 from semantic_backup_explorer.compare.folder_diff import FolderDiffResult, compare_folders
 from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
-from semantic_backup_explorer.utils.index_utils import find_backup_folder, get_all_files_from_index
+from semantic_backup_explorer.utils.drive_utils import get_volume_label
+from semantic_backup_explorer.utils.index_utils import (
+    find_backup_folder,
+    get_all_files_from_index,
+    get_index_metadata,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +43,32 @@ class BackupOperations:
         self.index_path = index_path
         self.rag_pipeline = rag_pipeline
 
+    def verify_backup_drive(self) -> tuple[bool, Optional[str]]:
+        """
+        Verifies if the currently connected drive matches the one in the index.
+
+        Returns:
+            A tuple of (is_correct, error_message).
+        """
+        metadata = get_index_metadata(self.index_path)
+        if not metadata.root_path:
+            return False, "Kein gültiger Index gefunden."
+
+        if not metadata.root_path.exists():
+            return False, f"Das Backup-Laufwerk ({metadata.root_path}) ist nicht angeschlossen."
+
+        if metadata.label:
+            current_label = get_volume_label(metadata.root_path)
+            if current_label and current_label != metadata.label:
+                return (
+                    False,
+                    f"Laufwerks-Konflikt! Erwartetes Label: '{metadata.label}', "
+                    f"Gefundenes Label: '{current_label}'. "
+                    "Bitte schließe das richtige Laufwerk an oder erstelle einen neuen Index.",
+                )
+
+        return True, None
+
     def find_and_compare(self, local_path: Path) -> BackupComparisonResult:
         """
         Finds the matching backup folder and compares contents.
@@ -48,6 +79,18 @@ class BackupOperations:
         Returns:
             A BackupComparisonResult object.
         """
+        # First verify the drive
+        is_correct, error = self.verify_backup_drive()
+        if not is_correct:
+            return BackupComparisonResult(
+                local_path=local_path,
+                backup_path=None,
+                only_local=[],
+                only_backup=[],
+                in_both=[],
+                error=error,
+            )
+
         if not local_path.exists():
             return BackupComparisonResult(
                 local_path=local_path,
