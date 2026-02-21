@@ -26,10 +26,10 @@ Navigate to `http://localhost:7860` in your browser.
 
 - **One-Click Sync**:
     1. Klicke auf "Ordner wählen" und suche den lokalen Ordner aus, den du abgleichen möchtest.
-    2. Klicke auf "Vergleichen".
+    2. Klicke auf "Vergleichen". Die App vergleicht deinen lokalen Ordner mit den Daten aus der `backup_index.md`.
     3. Die App sucht automatisch das passende Gegenstück auf deinem Backup-Laufwerk (basierend auf dem Namen oder via KI-Suche falls installiert).
     4. In der Liste "Nur Lokal" siehst du alle Dateien, die noch nicht im Backup sind oder lokal neuer sind.
-    5. Klicke auf **Synchronisieren**, um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren.
+    5. Klicke auf **Synchronisieren**, um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren. **Sicherheit:** Die App prüft vor dem Kopieren, ob das angeschlossene Laufwerk denselben Namen (Volume Label) hat wie beim Erstellen des Index. So wird verhindert, dass Daten auf ein falsches Laufwerk kopiert werden, falls mehrere Platten denselben Laufwerksbuchstaben (z.B. `E:\`) verwenden.
 - **Index Viewer**: Verwalte hier deine Backup-Indizes. Du kannst ein Laufwerk scannen, um eine kompakte Liste aller Dateien zu erstellen.
 - **Semantic Search (Optional)**: Nutze natürliche Sprache. Frage z.B. "Wo liegen meine alten Steuererklärungen?". Die KI durchsucht den Index und nennt dir die wahrscheinlichsten Ordner.
 

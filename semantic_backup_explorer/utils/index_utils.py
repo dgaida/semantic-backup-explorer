@@ -1,10 +1,56 @@
 """Utilities for parsing and searching the markdown backup index."""
 
+import datetime
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from semantic_backup_explorer.utils.path_utils import normalize_path
+
+
+@dataclass
+class IndexMetadata:
+    """Metadata about the backup index."""
+
+    root_path: Optional[Path]
+    label: Optional[str]
+    mtime: Optional[datetime.datetime]
+    age_days: int
+
+
+def get_index_metadata(index_path: str | Path) -> IndexMetadata:
+    """
+    Extracts metadata from the index file.
+
+    Args:
+        index_path: Path to the markdown index file.
+
+    Returns:
+        An IndexMetadata object.
+    """
+    index_path = Path(index_path)
+    if not index_path.exists():
+        return IndexMetadata(None, None, None, 0)
+
+    root_path = None
+    label = None
+    mtime = datetime.datetime.fromtimestamp(index_path.stat().st_mtime)
+    age_days = (datetime.datetime.now() - mtime).days
+
+    with open(index_path, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("Root: "):
+                content_after_root = line[6:].strip()
+                if " (Label: " in content_after_root:
+                    root_part, label_part = content_after_root.split(" (Label: ", 1)
+                    root_path = Path(root_part.strip())
+                    label = label_part.rstrip(")").strip()
+                else:
+                    root_path = Path(content_after_root)
+                break
+
+    return IndexMetadata(root_path, label, mtime, age_days)
 
 
 def find_backup_folder(folder_name: str, index_path: str | Path) -> Optional[str]:
