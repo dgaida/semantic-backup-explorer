@@ -29,7 +29,13 @@ Navigate to `http://localhost:7860` in your browser.
     2. Klicke auf "Vergleichen". Die App vergleicht deinen lokalen Ordner mit den Daten aus der `backup_index.md`.
     3. Die App sucht automatisch das passende Gegenstück auf deinem Backup-Laufwerk (basierend auf dem Namen oder via KI-Suche falls installiert).
     4. In der Liste "Nur Lokal" siehst du alle Dateien, die noch nicht im Backup sind oder lokal neuer sind.
-    5. Klicke auf **Synchronisieren**, um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren. **Sicherheit:** Die App prüft vor dem Kopieren, ob das angeschlossene Laufwerk denselben Namen (Volume Label) hat wie beim Erstellen des Index. So wird verhindert, dass Daten auf ein falsches Laufwerk kopiert werden, falls mehrere Platten denselben Laufwerksbuchstaben (z.B. `E:\`) verwenden.
+    5. Klicke auf **Synchronisieren**, um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren.
+
+### 🛡️ Sicherheit & Mehrere Laufwerke
+Die App nutzt den **Volume Namen (Label)** deiner Festplatte zur Identifizierung. Dies ist besonders wichtig, wenn du mehrere externe Platten hast, die sich unter demselben Laufwerksbuchstaben (z.B. `J:\`) anmelden.
+
+- **Verifikation vor Sync**: Vor jeder Synchronisation prüft die App, ob das aktuell angeschlossene Laufwerk denselben Namen hat wie das Laufwerk, für das der Index erstellt wurde. Bei einem Konflikt bricht die App ab, um Fehlkopien zu vermeiden.
+- **Index-Aktualität**: Der Abgleich erfolgt blitzschnell gegen den gespeicherten Index. Wenn der Index älter als 7 Tage ist, gibt die App eine Warnung aus. Aktualisiere den Index im Tab **Index Viewer**, wenn du Dateien manuell auf der Festplatte geändert hast.
 - **Index Viewer**: Verwalte hier deine Backup-Indizes. Du kannst ein Laufwerk scannen, um eine kompakte Liste aller Dateien zu erstellen.
 - **Semantic Search (Optional)**: Nutze natürliche Sprache. Frage z.B. "Wo liegen meine alten Steuererklärungen?". Die KI durchsucht den Index und nennt dir die wahrscheinlichsten Ordner.
 

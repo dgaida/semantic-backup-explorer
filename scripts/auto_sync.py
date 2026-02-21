@@ -18,6 +18,8 @@ from semantic_backup_explorer.exceptions import BackupExplorerError
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
 from semantic_backup_explorer.sync.sync_missing import sync_files
 from semantic_backup_explorer.utils.config import BackupConfig
+from semantic_backup_explorer.utils.drive_utils import get_volume_label
+from semantic_backup_explorer.utils.index_utils import get_index_metadata
 from semantic_backup_explorer.utils.logging_utils import setup_logging
 
 
@@ -49,6 +51,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Auto Sync local folders to backup.")
     parser.add_argument("--config", default="backup_config.md", help="Path to backup config markdown file.")
     parser.add_argument("--backup_path", help="Path to backup drive/folder root (overrides config).")
+    parser.add_argument("--force", action="store_true", help="Force indexing even if drive label mismatches existing index.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging.")
     args = parser.parse_args()
 
@@ -68,7 +71,20 @@ def main() -> None:
         logger.error(f"Backup drive validation failed: {e}")
         sys.exit(1)
 
-    # 1. Scan backup
+    # 1. Safety check: Verify drive label against existing index
+    if config.index_path.exists() and not args.force:
+        metadata = get_index_metadata(config.index_path)
+        if metadata.label:
+            current_label = get_volume_label(config.backup_drive)
+            if current_label and current_label != metadata.label:
+                logger.error(
+                    f"Laufwerks-Konflikt! Der bestehende Index gehört zum Laufwerk '{metadata.label}', "
+                    f"aber das angeschlossene Laufwerk hat das Label '{current_label}'."
+                )
+                logger.error("Bitte schließe das richtige Laufwerk an oder nutze --force zum Überschreiben des Index.")
+                sys.exit(1)
+
+    # 2. Scan backup
     logger.info(f"Scanning backup drive at {config.backup_drive}...")
     try:
         scan_backup(config.backup_drive, config.index_path)
