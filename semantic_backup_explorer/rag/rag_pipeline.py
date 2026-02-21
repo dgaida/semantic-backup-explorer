@@ -1,7 +1,13 @@
 """Module for the RAG (Retrieval-Augmented Generation) pipeline."""
 
 from dotenv import load_dotenv
-from llm_client import LLMClient as LLMClient
+
+try:
+    from llm_client import LLMClient as LLMClient
+
+    HAS_LLM_CLIENT = True
+except ImportError:
+    HAS_LLM_CLIENT = False
 
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.retriever import Retriever
@@ -17,7 +23,12 @@ class RAGPipeline:
     def __init__(self) -> None:
         """
         Initialize the RAG pipeline with embedder, retriever, and LLM client.
+
+        Raises:
+            ImportError: If any semantic dependencies are missing.
         """
+        if not HAS_LLM_CLIENT:
+            raise ImportError("llm-client is not installed. Please install it with 'pip install -e .[semantic]'")
         self.embedder = Embedder()
         self.retriever = Retriever()
         # Default to groq as requested

@@ -217,53 +217,17 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
             """
         # 📦 Semantic Backup Explorer
 
-        Willkommen beim Semantic Backup Explorer! Dieses Tool hilft dir dabei, deine Backups auf externen Laufwerken intelligent zu verwalten.
+        Willkommen beim Semantic Backup Explorer! Dieses Tool hilft dir dabei, deine Backups auf externen Laufwerken einfach und intelligent zu verwalten.
 
-        - **Semantische Suche**: Finde Ordner anhand ihres Inhalts, auch wenn du den genauen Namen vergessen hast.
-        - **Ordner-Vergleich**: Vergleiche lokale Ordner blitzschnell mit ihrem Gegenstück im Backup.
-        - **Einfacher Sync**: Kopiere fehlende oder neuere Dateien mit nur einem Klick auf dein Backup-Laufwerk.
+        - **One-Click Sync**: Vergleiche lokale Ordner blitzschnell mit ihrem Backup und sichere fehlende Dateien mit nur einem Klick.
+        - **Index-Erstellung**: Erfasse die Struktur deiner Backup-Laufwerke, um sie auch ohne angeschlossene Festplatte zu durchsuchen.
+        - **Semantische Suche (Optional)**: Finde Ordner anhand ihres Inhalts, auch wenn du den genauen Namen vergessen hast.
 
-        *Tipp: Erstelle zuerst einen Index deines Backup-Laufwerks im Tab 'Index Viewer'.*
+        *Tipp: Wähle zuerst deinen lokalen Ordner im Tab 'One-Click Sync' aus oder erstelle einen Index im Tab 'Index Viewer'.*
         """
         )
 
-    with gr.Tab("📚 Semantic Search") as semantic_search_tab:
-        gr.Markdown("### Durchsuche dein Backup mit natürlicher Sprache")
-        with gr.Group():
-            embeddings_warning = gr.Markdown(visible=False)
-            rebuild_embeddings_button = gr.Button(
-                "Embeddings erstellen / aktualisieren",
-                visible=False,
-                variant="secondary",
-            )
-
-        with gr.Row():
-            query_input = gr.Textbox(
-                label="Deine Frage",
-                placeholder="z.B. Wo liegen meine alten Steuererklärungen?",
-                info="Frage nach Inhalten, Projekten oder Dokumenten.",
-                scale=4,
-            )
-            search_button = gr.Button("🔍 Suchen", variant="primary", scale=1)
-
-        with gr.Row():
-            with gr.Column(scale=1):
-                answer_output = gr.Textbox(label="KI-Antwort", lines=5)
-            with gr.Column(scale=1):
-                context_output = gr.Textbox(
-                    label="Gefundene Ordner (Kontext)",
-                    lines=10,
-                    info="Diese Ordner wurden als relevant für deine Suche identifiziert.",
-                )
-
-        search_button.click(semantic_search, inputs=query_input, outputs=[answer_output, context_output])
-
-        semantic_search_tab.select(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
-        rebuild_embeddings_button.click(run_rebuild_embeddings, outputs=[]).then(
-            check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
-        )
-
-    with gr.Tab("📂 Folder Compare"):
+    with gr.Tab("🔄 One-Click Sync"):
         gr.Markdown("### Lokalen Ordner mit Backup vergleichen und synchronisieren")
         with gr.Group():
             with gr.Row():
@@ -342,6 +306,62 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
 
         create_index_button.click(create_index, inputs=backup_path_display, outputs=[index_status, index_content])
         refresh_button.click(get_index_viewer, inputs=[], outputs=index_content)
+
+    with gr.Tab("📚 Semantic Search") as semantic_search_tab:
+        gr.Markdown("### Durchsuche dein Backup mit natürlicher Sprache")
+
+        gr.Markdown(
+            """
+            ⚠️ **Datenschutz-Hinweis**: Bei der semantischen Suche werden relevante Teile deiner Pfadnamen an ein LLM in der Cloud (Groq) gesendet.
+            Nutze diese Funktion nicht, wenn deine Pfadnamen sensible Informationen enthalten.
+            """
+        )
+
+        if pipeline is None:
+            gr.Markdown(
+                "⚠️ **Semantische Suche deaktiviert**: Die benötigten Python-Pakete sind nicht installiert. "
+                "Bitte installiere sie mit `pip install -e .[semantic]`, um diese Funktion zu nutzen."
+            )
+            embeddings_warning = gr.Markdown(visible=False)
+            rebuild_embeddings_button = gr.Button(visible=False)
+            query_input = gr.Textbox(visible=False)
+            search_button = gr.Button(visible=False)
+            answer_output = gr.Textbox(visible=False)
+            context_output = gr.Textbox(visible=False)
+        else:
+            with gr.Group():
+                embeddings_warning = gr.Markdown(visible=False)
+                rebuild_embeddings_button = gr.Button(
+                    "Embeddings erstellen / aktualisieren",
+                    visible=False,
+                    variant="secondary",
+                )
+
+            with gr.Row():
+                query_input = gr.Textbox(
+                    label="Deine Frage",
+                    placeholder="z.B. Wo liegen meine alten Steuererklärungen?",
+                    info="Frage nach Inhalten, Projekten oder Dokumenten.",
+                    scale=4,
+                )
+                search_button = gr.Button("🔍 Suchen", variant="primary", scale=1)
+
+            with gr.Row():
+                with gr.Column(scale=1):
+                    answer_output = gr.Textbox(label="KI-Antwort", lines=5)
+                with gr.Column(scale=1):
+                    context_output = gr.Textbox(
+                        label="Gefundene Ordner (Kontext)",
+                        lines=10,
+                        info="Diese Ordner wurden als relevant für deine Suche identifiziert.",
+                    )
+
+            search_button.click(semantic_search, inputs=query_input, outputs=[answer_output, context_output])
+
+            semantic_search_tab.select(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
+            rebuild_embeddings_button.click(run_rebuild_embeddings, outputs=[]).then(
+                check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
+            )
 
     demo.load(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button])
 

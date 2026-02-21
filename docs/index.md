@@ -6,29 +6,29 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![codecov](https://codecov.io/gh/dgaida/semantic-backup-explorer/branch/main/graph/badge.svg)](https://codecov.io/gh/dgaida/semantic-backup-explorer)
 
-Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchronisation von Backups** auf externen Festplatten.
+Ein Python-basiertes Tool zur **Synchronisation, Analyse und semantischen Durchsuchung von Backups** auf externen Festplatten.
 
-Der Semantic Backup Explorer hilft dir dabei, den Überblick über deine verstreuten Backups auf verschiedenen externen Laufwerken zu behalten. Er nutzt modernste KI-Technologie (Large Language Models), um deine Dateien auffindbar zu machen – sogar wenn du den genauen Namen eines Ordners vergessen hast!
+Der Semantic Backup Explorer hilft dir dabei, den Überblick über deine verstreuten Backups auf verschiedenen externen Laufwerken zu behalten. Der Fokus liegt auf einem einfachen **One-Click Sync**, um deine tägliche Arbeit schnell und unkompliziert zu sichern. Optional kannst du modernste KI-Technologie (Large Language Models) nutzen, um deine Dateien auffindbar zu machen.
 
 ---
 
 ## 🤔 Warum Semantic Backup Explorer?
 
-Hast du mehrere externe Festplatten und suchst verzweifelt nach den Hochzeitsfotos von vor 5 Jahren oder den Steuerunterlagen aus 2018? Normalerweise müsstest du jede Platte anschließen und manuell durchsuchen.
+Hast du mehrere externe Festplatten und möchtest sicherstellen, dass dein aktuelles Projekt auf dem richtigen Backup-Stand ist? Oder suchst du verzweifelt nach Dateien, ohne jede Platte einzeln anschließen zu wollen?
 
 **Hier kommt der Semantic Backup Explorer ins Spiel:**
 
-1.  **Einmal Scannen (Indizieren):** Die App liest einmalig die Struktur deiner Festplatte ein und speichert sie in einem kompakten "Index" (einer Textdatei).
-2.  **Suchen ohne Hardware:** Du kannst deine Backups durchsuchen, **ohne** dass die Festplatten angeschlossen sein müssen. Die KI versteht Zusammenhänge (z.B. findet sie "Rechnungen", wenn du nach "Finanzen" suchst).
-3.  **Intelligenter Abgleich:** Wenn du weißt, auf welcher Platte das Backup liegt, hilft dir die App dabei, deinen aktuellen Arbeitsordner mit dem Backup zu vergleichen und nur die neuen Dateien zu sichern.
+1.  **Blitzschneller Abgleich (One-Click Sync):** Wähle einen lokalen Ordner, und die App findet automatisch das passende Backup-Gegenstück und zeigt dir, was fehlt.
+2.  **Kompakter Index:** Die App speichert die Struktur deiner Festplatte in einer kleinen Textdatei. So weißt du immer, was wo liegt, auch wenn die Platte im Schrank liegt.
+3.  **KI-Suche (Optional):** Die KI versteht Zusammenhänge (z.B. findet sie "Rechnungen", wenn du nach "Finanzen" suchst) und hilft dir, den richtigen Backup-Ordner zu finden.
 
 ---
 
 ## 🌟 Hauptfunktionen
 
-*   🔍 **Semantische Suche**: Frage einfach: "Wo habe ich meine Python-Projekte gesichert?"
-*   📂 **Ordner-Vergleich**: Sieh auf einen Blick, welche Dateien lokal vorhanden sind, aber im Backup fehlen.
-*   🔄 **One-Click Sync**: Kopiere fehlende Dateien direkt auf das Backup-Laufwerk.
+*   🔄 **One-Click Sync**: Kopiere fehlende oder neuere Dateien mit nur einem Klick auf dein Backup-Laufwerk.
+*   📂 **Intelligenter Abgleich**: Findet automatisch den richtigen Zielordner auf deinem Backup.
+*   🔍 **Semantische Suche (Optional)**: Frage einfach: "Wo habe ich meine Python-Projekte gesichert?"
 *   🏷️ **Laufwerks-Erkennung**: Erkennt automatisch den Namen (Label) deiner Festplatten unter Windows.
 
 ---
@@ -36,24 +36,26 @@ Hast du mehrere externe Festplatten und suchst verzweifelt nach den Hochzeitsfot
 ## 🚀 Schnellstart (5 Minuten)
 
 ### 1. Installation
+
+**Basis (Sync & Index):**
 ```bash
 git clone https://github.com/dgaida/semantic-backup-explorer.git
 cd semantic-backup-explorer
 pip install -e .
-cp .env.example .env
-# Trage deine API-Keys (GROQ_API_KEY) in .env ein
 ```
 
-### 2. Ersten Index erstellen
+**Optional (Semantische Suche):**
 ```bash
-python scripts/build_index.py --path /path/to/backup
+pip install -e ".[semantic]"
+cp .env.example .env
+# Trage deinen GROQ_API_KEY in .env ein
 ```
 
-### 3. Web-App starten
+### 2. Web-App starten
 ```bash
 python -m semantic_backup_explorer.cli.ui.gradio_app
 ```
-Öffne http://localhost:7860 und stelle deine erste Frage!
+Öffne http://localhost:7860 und starte deinen ersten Sync!
 
 ---
 
@@ -66,14 +68,14 @@ python -m semantic_backup_explorer.cli.ui.gradio_app
          │
          ▼
 ┌─────────────────┐      ┌──────────────┐
-│ RAG Pipeline    │◄─────┤  ChromaDB    │
-│ (Core Logic)    │      │  (Embeddings)│
+│ Sync & Compare  │◄─────┤ Backup Index │
+│ (Core Logic)    │      │ (Markdown)   │
 └────────┬────────┘      └──────────────┘
-         │
+         │ (Optional)
          ▼
 ┌─────────────────┐      ┌──────────────┐
-│ Backup Index    │◄─────┤  LLM Client  │
-│ (Markdown)      │      │  (Groq)      │
+│ RAG Pipeline    │◄─────┤  ChromaDB    │
+│ (Semantic)      │      │  (Embeddings)│
 └─────────────────┘      └──────────────┘
 ```
 
@@ -100,10 +102,9 @@ semantic_backup_explorer/
 
 ## ⚙️ Kernfunktionen
 
-* **Backup-Struktur erfassen**: Rekursives Scanning und Speicherung als Markdown (`backup_index.md`).
-* **Semantische Suche (RAG)**: Ordnerbasierte Chunking-Logik ermöglicht präzise Suche in Backup-Strukturen via LLM.
-* **Intelligenter Ordnervergleich**: Lokale Ordner werden automatisch (keyword-basiert oder via RAG) ihrem Backup-Gegenstück zugeordnet und verglichen.
-* **One-Click Sync**: Fehlende oder neuere lokale Dateien werden direkt auf das Backup-Laufwerk synchronisiert.
+*   🔄 **One-Click Sync**: Kopiere fehlende oder neuere Dateien mit nur einem Klick auf dein Backup-Laufwerk.
+*   📄 **Backup-Index**: Erfasse die Struktur deiner Backup-Laufwerke als kompakte Markdown-Datei.
+*   🔍 **Semantische Suche (Optional)**: Nutze KI (LLMs), um deine Backups in natürlicher Sprache zu durchsuchen.
 
 ---
 

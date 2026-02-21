@@ -24,27 +24,28 @@ python -m semantic_backup_explorer.cli.ui.gradio_app
 
 Navigate to `http://localhost:7860` in your browser.
 
-- **Semantic Search**: Nutze natürliche Sprache. Frage z.B. "Wo liegen meine alten Steuererklärungen?". Die KI durchsucht den Index und nennt dir die wahrscheinlichsten Ordner.
-- **Folder Compare**:
+- **One-Click Sync**:
     1. Klicke auf "Ordner wählen" und suche den lokalen Ordner aus, den du abgleichen möchtest.
     2. Klicke auf "Vergleichen".
-    3. Die App sucht automatisch das passende Gegenstück auf deinem Backup-Laufwerk (basierend auf dem Namen oder via KI).
-    4. In der Liste "Nur Lokal" siehst du alle Dateien, die noch nicht im Backup sind.
-- **Synchronisieren**: Wenn du im Tab "Folder Compare" bist und Unterschiede gefunden wurden, klicke auf "Synchronisieren", um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren.
+    3. Die App sucht automatisch das passende Gegenstück auf deinem Backup-Laufwerk (basierend auf dem Namen oder via KI-Suche falls installiert).
+    4. In der Liste "Nur Lokal" siehst du alle Dateien, die noch nicht im Backup sind oder lokal neuer sind.
+    5. Klicke auf **Synchronisieren**, um die fehlenden Dateien direkt auf die externe Festplatte zu kopieren.
+- **Index Viewer**: Verwalte hier deine Backup-Indizes. Du kannst ein Laufwerk scannen, um eine kompakte Liste aller Dateien zu erstellen.
+- **Semantic Search (Optional)**: Nutze natürliche Sprache. Frage z.B. "Wo liegen meine alten Steuererklärungen?". Die KI durchsucht den Index und nennt dir die wahrscheinlichsten Ordner.
 
 ## Schritt-für-Schritt für Einsteiger
 
 ### 1. Vorbereitung
 Schließe dein Backup-Laufwerk (z.B. eine USB-Festplatte) an deinen Computer an.
 
-### 2. Den Index erstellen
+### 2. Den Index erstellen (Einmalig pro Laufwerk)
 Gehe zum Tab **Index Viewer**. Wähle über den Button "Ordner wählen" dein Backup-Laufwerk aus (z.B. `E:\`). Klicke auf **Index erstellen**. Die App scannt nun alle Dateien. Das kann je nach Größe der Festplatte ein paar Minuten dauern.
 
-### 3. KI-Suche aktivieren
-Gehe zum Tab **Semantic Search**. Klicke auf den Button **Embeddings erstellen**. Dieser Schritt ist wichtig, damit die KI die Ordnerstruktur "verstehen" kann. Dies muss nur einmal nach dem Erstellen eines neuen Index gemacht werden.
+### 3. Sichern mit One-Click Sync
+Gehe zum Tab **One-Click Sync**. Wähle deinen lokalen Ordner (den du sichern willst) aus und klicke auf **Vergleichen**. Die App zeigt dir, was gesichert werden muss. Klicke dann auf **Synchronisieren**.
 
-### 4. Suchen und Abgleichen
-Jetzt kannst du über die Suche Ordner finden oder über den Tab **Folder Compare** deine tägliche Arbeit sichern.
+### 4. KI-Suche aktivieren (Optional)
+Falls du die semantischen Features installiert hast, gehe zum Tab **Semantic Search**. Klicke auf den Button **Embeddings erstellen**. Dies muss nur einmal nach dem Erstellen eines neuen Index gemacht werden, damit die KI die Ordnerstruktur "verstehen" kann.
 
 ## Automated Sync
 

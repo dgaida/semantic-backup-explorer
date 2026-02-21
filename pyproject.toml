@@ -9,19 +9,21 @@ description = "A semantic search and sync tool for backups."
 requires-python = ">=3.10, <3.14"
 dependencies = [
     "gradio",
-    "langchain",
-    "chromadb>=0.5.0",
-    "sentence-transformers",
-    "llm-client @ git+https://github.com/dgaida/llm_client.git",
     "python-dotenv",
     "tqdm",
     "pydantic-settings",
     "pydantic>=2.0",
-    "typing-extensions>=4.10.0", 
+    "typing-extensions>=4.10.0",
     "commitizen>=3.0.0"
 ]
 
 [project.optional-dependencies]
+semantic = [
+    "langchain",
+    "chromadb>=0.5.0",
+    "sentence-transformers",
+    "llm-client @ git+https://github.com/dgaida/llm_client.git"
+]
 dev = [
     "pytest",
     "pytest-cov",
