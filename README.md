@@ -6,32 +6,43 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![codecov](https://codecov.io/gh/dgaida/semantic-backup-explorer/branch/main/graph/badge.svg)](https://codecov.io/gh/dgaida/semantic-backup-explorer)
 
-Ein Python-basiertes Tool zur **Analyse, semantischen Durchsuchung und Synchronisation von Backups** auf externen Festplatten – mit einer **Gradio Web-App**, **RAG-Pipeline** und Anbindung an ein LLM über
-👉 [https://dgaida.github.io/llm_client/](https://dgaida.github.io/llm_client/)
+Ein Python-basiertes Tool zur **Synchronisation, Analyse und semantischen Durchsuchung von Backups** auf externen Festplatten.
+
+Der Fokus liegt auf einer **einfachen Bedienung (One-Click Sync)**, auch ohne spezielle Hardware (GPU). Die semantische Suche über eine RAG-Pipeline ist ein optionales Feature.
 
 ---
 
 ## 🚀 Schnellstart (5 Minuten)
 
 ### 1. Installation
+
+**Basis-Installation (nur Sync & Index):**
 ```bash
 git clone https://github.com/dgaida/semantic-backup-explorer.git
 cd semantic-backup-explorer
 pip install -e .
-cp .env.example .env
-# Trage deine API-Keys (GROQ_API_KEY) in .env ein
 ```
 
-### 2. Ersten Index erstellen
+**Vollständige Installation (inkl. Semantischer Suche):**
 ```bash
-python scripts/build_index.py --path /path/to/backup
+pip install -e ".[semantic]"
+cp .env.example .env
+# Trage deinen GROQ_API_KEY in .env ein
 ```
 
-### 3. Web-App starten
+### 2. Web-App starten
 ```bash
 python -m semantic_backup_explorer.cli.ui.gradio_app
 ```
-Öffne http://localhost:7860 und stelle deine erste Frage!
+Öffne http://localhost:7860 und starte deinen ersten Sync!
+
+---
+
+## ⚙️ Kernfunktionen
+
+*   🔄 **One-Click Sync**: Vergleiche lokale Ordner blitzschnell mit deinem Backup und sichere fehlende Dateien mit nur einem Klick.
+*   📄 **Backup-Index**: Erfasse die Struktur deiner Backup-Laufwerke als kompakte Markdown-Datei (`backup_index.md`).
+*   🔍 **Semantische Suche (Optional)**: Nutze KI (LLMs), um deine Backups in natürlicher Sprache zu durchsuchen – auch wenn die Festplatte nicht angeschlossen ist.
 
 ---
 
@@ -44,14 +55,14 @@ python -m semantic_backup_explorer.cli.ui.gradio_app
          │
          ▼
 ┌─────────────────┐      ┌──────────────┐
-│ RAG Pipeline    │◄─────┤  ChromaDB    │
-│ (Core Logic)    │      │  (Embeddings)│
+│ Sync & Compare  │◄─────┤ Backup Index │
+│ (Core Logic)    │      │ (Markdown)   │
 └────────┬────────┘      └──────────────┘
-         │
+         │ (Optional)
          ▼
 ┌─────────────────┐      ┌──────────────┐
-│ Backup Index    │◄─────┤  LLM Client  │
-│ (Markdown)      │      │  (Groq)      │
+│ RAG Pipeline    │◄─────┤  ChromaDB    │
+│ (Semantic)      │      │  (Embeddings)│
 └─────────────────┘      └──────────────┘
 ```
 
@@ -62,26 +73,16 @@ python -m semantic_backup_explorer.cli.ui.gradio_app
 ```
 semantic_backup_explorer/
 ├── cli/            # CLI-spezifische Logik & UI
-│   ├── commands/   # Zukünftige CLI Commands
 │   └── ui/         # Gradio Web Interface
 ├── core/           # Kern-Businesslogik (BackupOperations)
 ├── indexer/        # Scanning-Logik
-├── chunking/       # Markdown Partitionierung
-├── rag/            # Embedding & Retrieval
+├── chunking/       # Markdown Partitionierung (für RAG)
+├── rag/            # Embedding & Retrieval (Optional)
 ├── compare/        # Folder Diffing
 ├── sync/           # Datei Synchronisation
 ├── utils/          # Hilfsfunktionen (Config, Logging, Paths)
 └── exceptions.py   # Custom Exceptions
 ```
-
----
-
-## ⚙️ Kernfunktionen
-
-* **Backup-Struktur erfassen**: Rekursives Scanning und Speicherung als Markdown (`backup_index.md`).
-* **Semantische Suche (RAG)**: Ordnerbasierte Chunking-Logik ermöglicht präzise Suche in Backup-Strukturen via LLM.
-* **Intelligenter Ordnervergleich**: Lokale Ordner werden automatisch (keyword-basiert oder via RAG) ihrem Backup-Gegenstück zugeordnet und verglichen.
-* **One-Click Sync**: Fehlende oder neuere lokale Dateien werden direkt auf das Backup-Laufwerk synchronisiert.
 
 ---
 

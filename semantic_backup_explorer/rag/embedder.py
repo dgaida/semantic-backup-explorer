@@ -1,8 +1,12 @@
 """Module for generating text embeddings using SentenceTransformers."""
 
-from typing import cast
+from typing import Any, cast
 
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+    HAS_SENTENCE_TRANSFORMERS = True
+except ImportError:
+    HAS_SENTENCE_TRANSFORMERS = False
 
 
 class Embedder:
@@ -18,7 +22,15 @@ class Embedder:
 
         Args:
             model_name: The name of the SentenceTransformer model to use.
+
+        Raises:
+            ImportError: If sentence-transformers is not installed.
         """
+        if not HAS_SENTENCE_TRANSFORMERS:
+            raise ImportError(
+                "sentence-transformers is not installed. "
+                "Please install it with 'pip install -e .[semantic]'"
+            )
         self.model = SentenceTransformer(model_name)
 
     def embed_query(self, text: str) -> list[float]:

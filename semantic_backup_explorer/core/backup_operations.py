@@ -62,7 +62,7 @@ class BackupOperations:
         backup_folder_str = find_backup_folder(folder_name, self.index_path)
 
         # Fallback to RAG if enabled and no direct match found
-        if not backup_folder_str and self.rag_pipeline:
+        if not backup_folder_str and self.rag_pipeline is not None:
             logger.info(f"No direct match for {folder_name}, trying RAG search...")
             backup_folder_str = self._rag_search(folder_name)
 
