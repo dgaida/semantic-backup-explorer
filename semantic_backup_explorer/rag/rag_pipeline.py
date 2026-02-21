@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 try:
     from llm_client import LLMClient as LLMClient
+
     HAS_LLM_CLIENT = True
 except ImportError:
     HAS_LLM_CLIENT = False
@@ -27,10 +28,7 @@ class RAGPipeline:
             ImportError: If any semantic dependencies are missing.
         """
         if not HAS_LLM_CLIENT:
-            raise ImportError(
-                "llm-client is not installed. "
-                "Please install it with 'pip install -e .[semantic]'"
-            )
+            raise ImportError("llm-client is not installed. Please install it with 'pip install -e .[semantic]'")
         self.embedder = Embedder()
         self.retriever = Retriever()
         # Default to groq as requested

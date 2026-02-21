@@ -6,10 +6,11 @@ from typing import Any
 try:
     import chromadb
     from chromadb.api.types import QueryResult
+
     HAS_CHROMADB = True
 except ImportError:
     HAS_CHROMADB = False
-    QueryResult = Any # type: ignore
+    QueryResult = Any  # type: ignore
 
 
 class Retriever:
@@ -32,10 +33,7 @@ class Retriever:
             ImportError: If chromadb is not installed.
         """
         if not HAS_CHROMADB:
-            raise ImportError(
-                "chromadb is not installed. "
-                "Please install it with 'pip install -e .[semantic]'"
-            )
+            raise ImportError("chromadb is not installed. Please install it with 'pip install -e .[semantic]'")
         self.client = chromadb.PersistentClient(path=str(persist_directory))
         self.collection = self.client.get_or_create_collection(name="backup_index")
 

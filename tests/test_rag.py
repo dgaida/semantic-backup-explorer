@@ -25,7 +25,11 @@ class TestRAG(unittest.TestCase):
             pipeline = RAGPipeline()
             # Add some mock data to retriever
             chunks = [
-                {"folder": "/path/to/tax", "content": "## /path/to/tax\n- tax_2021.pdf", "metadata": {"folder": "/path/to/tax"}}
+                {
+                    "folder": "/path/to/tax",
+                    "content": "## /path/to/tax\n- tax_2021.pdf",
+                    "metadata": {"folder": "/path/to/tax"},
+                }
             ]
             embeddings = pipeline.embedder.embed_documents([c["content"] for c in chunks])
             pipeline.retriever.clear()
