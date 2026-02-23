@@ -1,3 +1,10 @@
+## v0.5.2 (2026-02-23)
+
+### Fix
+
+- make RAG dependencies truly optional and fix CI linting
+- make RAG dependencies truly optional and resilient
+
 ## v0.5.1 (2026-02-21)
 
 ## v0.5.0 (2026-02-21)
