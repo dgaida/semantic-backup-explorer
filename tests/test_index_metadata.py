@@ -1,9 +1,9 @@
-import unittest
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 import datetime
-import os
-from semantic_backup_explorer.utils.index_utils import get_index_metadata, IndexMetadata
+import unittest
+from pathlib import Path
+
+from semantic_backup_explorer.utils.index_utils import get_index_metadata
+
 
 class TestIndexMetadata(unittest.TestCase):
     def setUp(self):
@@ -34,6 +34,7 @@ class TestIndexMetadata(unittest.TestCase):
         metadata = get_index_metadata("non_existent.md")
         self.assertIsNone(metadata.root_path)
         self.assertEqual(metadata.age_days, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

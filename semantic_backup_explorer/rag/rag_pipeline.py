@@ -6,7 +6,7 @@ try:
     from llm_client import LLMClient as LLMClient
 
     HAS_LLM_CLIENT = True
-except ImportError:
+except Exception:
     HAS_LLM_CLIENT = False
 
 from semantic_backup_explorer.rag.embedder import Embedder
