@@ -10,13 +10,13 @@ import gradio as gr
 from semantic_backup_explorer.chunking.folder_chunker import chunk_markdown
 from semantic_backup_explorer.core.backup_operations import BackupOperations
 from semantic_backup_explorer.indexer.scan_backup import scan_backup
-from semantic_backup_explorer.utils.index_utils import get_index_metadata
 from semantic_backup_explorer.rag.embedder import Embedder
 from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.rag.retriever import Retriever
 from semantic_backup_explorer.sync.sync_missing import sync_files
 from semantic_backup_explorer.utils.compatibility import check_python_version
 from semantic_backup_explorer.utils.config import BackupConfig
+from semantic_backup_explorer.utils.index_utils import get_index_metadata
 
 check_python_version()
 
@@ -417,9 +417,9 @@ with gr.Blocks(title="Semantic Backup Explorer", theme=gr.themes.Soft()) as demo
                 check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
             )
 
-    demo.load(
-        check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]
-    ).then(get_index_status_html, outputs=index_info_box)
+    demo.load(check_embeddings_staleness, outputs=[embeddings_warning, rebuild_embeddings_button]).then(
+        get_index_status_html, outputs=index_info_box
+    )
 
 
 def main() -> None:

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from semantic_backup_explorer.compare.folder_diff import FolderDiffResult, compare_folders
+
 if TYPE_CHECKING:
     from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.utils.drive_utils import get_volume_label
