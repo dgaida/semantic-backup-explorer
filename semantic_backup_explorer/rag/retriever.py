@@ -8,7 +8,7 @@ try:
     from chromadb.api.types import QueryResult
 
     HAS_CHROMADB = True
-except ImportError:
+except Exception:
     HAS_CHROMADB = False
     QueryResult = Any  # type: ignore
 

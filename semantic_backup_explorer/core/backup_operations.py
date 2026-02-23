@@ -3,10 +3,11 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from semantic_backup_explorer.compare.folder_diff import FolderDiffResult, compare_folders
-from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
+if TYPE_CHECKING:
+    from semantic_backup_explorer.rag.rag_pipeline import RAGPipeline
 from semantic_backup_explorer.utils.drive_utils import get_volume_label
 from semantic_backup_explorer.utils.index_utils import (
     find_backup_folder,
@@ -32,7 +33,7 @@ class BackupComparisonResult:
 class BackupOperations:
     """High-level operations for backup management."""
 
-    def __init__(self, index_path: Path, rag_pipeline: Optional[RAGPipeline] = None):
+    def __init__(self, index_path: Path, rag_pipeline: Optional["RAGPipeline"] = None):
         """
         Initialize BackupOperations.
 

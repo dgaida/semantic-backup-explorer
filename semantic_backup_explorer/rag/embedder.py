@@ -6,7 +6,7 @@ try:
     from sentence_transformers import SentenceTransformer
 
     HAS_SENTENCE_TRANSFORMERS = True
-except ImportError:
+except Exception:
     HAS_SENTENCE_TRANSFORMERS = False
 
 

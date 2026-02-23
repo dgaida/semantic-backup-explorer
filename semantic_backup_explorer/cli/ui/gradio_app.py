@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 config = BackupConfig()
 
 # Initialize RAG Pipeline
-pipeline: Optional[RAGPipeline]
+pipeline: Optional["RAGPipeline"] = None
 try:
     pipeline = RAGPipeline()
 except Exception as e:
